@@ -29,7 +29,7 @@
         <field name="name">tbom.temporary.operation.form</field>
         <field name="model">tbom.temporary.operation</field>
         <field name="arch" type="xml">
-            <form string="Temporary Operation" edit="state not in ('closed', 'cancelled')">
+            <form string="Temporary Operation">
                 <header>
                     <button name="action_setup" string="Start Setup" type="object" class="oe_highlight" invisible="state != 'planned'" groups="tbom.group_tbom_manager"/>
                     <button name="action_activate" string="Activate" type="object" class="oe_highlight" invisible="state != 'setup'" groups="tbom.group_tbom_manager"/>
