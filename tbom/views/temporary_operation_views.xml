@@ -32,9 +32,10 @@
             <form string="Temporary Operation">
                 <header>
                     <button name="action_setup" string="Start Setup" type="object" class="oe_highlight" invisible="state != 'planned'" groups="tbom.group_tbom_manager"/>
-                    <button name="action_activate" string="Activate" type="object" class="oe_highlight" invisible="state != 'setup'" groups="tbom.group_tbom_manager"/>
+                    <button name="action_activate" string="Start Operation" type="object" class="oe_highlight" invisible="state != 'setup'" groups="tbom.group_tbom_manager"/>
                     <button name="action_closing" string="Start Closing" type="object" class="oe_highlight" invisible="state != 'active'" groups="tbom.group_tbom_manager"/>
-                    <button name="action_close" string="Close Operation" type="object" class="oe_highlight" invisible="state != 'closing'" groups="tbom.group_tbom_manager"/>
+                    <button name="action_close" string="Close Operation" type="object" class="oe_highlight" invisible="state != 'closing'" groups="tbom.group_tbom_manager" confirm="Are you sure you want to close this operation? Once closed, it cannot be edited."/>
+                    <button name="%(tbom.action_report_temporary_operation)d" string="Print Final Report" type="action" class="oe_highlight" invisible="state != 'closed'"/>
                     <button name="action_cancel" string="Cancel" type="object" invisible="state in ('closed', 'cancelled')" groups="tbom.group_tbom_manager"/>
                     <button name="action_draft" string="Reset to Planned" type="object" invisible="state != 'cancelled'" groups="tbom.group_tbom_manager"/>
                     <field name="state" widget="statusbar" statusbar_visible="planned,setup,active,closing,closed"/>
@@ -130,11 +131,22 @@
                                 </group>
                             </group>
                         </page>
+                        <page string="State History" name="history_page">
+                            <field name="state_history_ids">
+                                <list string="State Transitions" create="false" delete="false" edit="false">
+                                    <field name="transition_datetime"/>
+                                    <field name="previous_state"/>
+                                    <field name="new_state"/>
+                                    <field name="user_id"/>
+                                </list>
+                            </field>
+                        </page>
                         <page string="Description" name="description_page">
                             <field name="description" placeholder="Describe the temporary operation details here..."/>
                         </page>
                     </notebook>
                 </sheet>
+                <chatter/>
             </form>
         </field>
     </record>

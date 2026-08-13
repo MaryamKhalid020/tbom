@@ -7,3 +7,6 @@ access_tbom_expense_user,access_tbom_expense_user,model_tbom_expense,tbom.group_
 access_tbom_expense_mgr,access_tbom_expense_mgr,model_tbom_expense,tbom.group_tbom_manager,1,1,1,1
 access_tbom_equipment_user,access_tbom_equipment_user,model_tbom_equipment,tbom.group_tbom_user,1,1,1,0
 access_tbom_equipment_mgr,access_tbom_equipment_mgr,model_tbom_equipment,tbom.group_tbom_manager,1,1,1,1
+access_tbom_state_history_user,access_tbom_state_history_user,model_tbom_operation_state_history,tbom.group_tbom_user,1,1,1,0
+access_tbom_state_history_mgr,access_tbom_state_history_mgr,model_tbom_operation_state_history,tbom.group_tbom_manager,1,1,1,1
+

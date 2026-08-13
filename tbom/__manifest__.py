@@ -24,6 +24,7 @@ with a temporary operation.
     'depends': [
         'base',
         'hr',
+        'mail',
     ],
     'data': [
         'security/tbom_security.xml',

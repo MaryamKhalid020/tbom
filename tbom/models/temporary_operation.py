@@ -4,6 +4,7 @@ from odoo.exceptions import ValidationError
 
 class TemporaryOperation(models.Model):
     _name = 'tbom.temporary.operation'
+    _inherit = ['mail.thread', 'mail.activity.mixin']
     _description = 'Temporary Business Operation'
     _order = 'start_date desc'
 
@@ -13,12 +14,14 @@ class TemporaryOperation(models.Model):
 
     name = fields.Char(
         string='Operation Name',
-        required=True
+        required=True,
+        tracking=True
     )
 
     code = fields.Char(
         string='Operation Code',
-        required=True
+        required=True,
+        tracking=True
     )
 
     operation_type = fields.Selection(
@@ -32,22 +35,26 @@ class TemporaryOperation(models.Model):
             ('other', 'Other'),
         ],
         string='Operation Type',
-        required=True
+        required=True,
+        tracking=True
     )
 
     location = fields.Char(
         string='Location',
-        required=True
+        required=True,
+        tracking=True
     )
 
     start_date = fields.Date(
         string='Start Date',
-        required=True
+        required=True,
+        tracking=True
     )
 
     end_date = fields.Date(
         string='End Date',
-        required=True
+        required=True,
+        tracking=True
     )
 
     description = fields.Text(
@@ -65,16 +72,26 @@ class TemporaryOperation(models.Model):
         ],
         string='Status',
         default='planned',
-        required=True
+        required=True,
+        tracking=True
     )
 
     responsible_id = fields.Many2one(
         'res.users',
-        string='Responsible Manager'
+        string='Responsible Manager',
+        tracking=True
     )
 
     budget = fields.Float(
-        string='Budget'
+        string='Budget',
+        tracking=True
+    )
+
+    state_history_ids = fields.One2many(
+        'tbom.operation.state.history',
+        'operation_id',
+        string='State History',
+        readonly=True
     )
 
     company_id = fields.Many2one(
@@ -184,6 +201,13 @@ class TemporaryOperation(models.Model):
         for record in self:
             if record.state in ('closed', 'cancelled') and not any(k in vals for k in ['state']):
                 raise ValidationError('Closed or cancelled operations cannot be edited.')
+            if 'state' in vals and vals['state'] != record.state:
+                self.env['tbom.operation.state.history'].create({
+                    'operation_id': record.id,
+                    'previous_state': record.state,
+                    'new_state': vals['state'],
+                    'user_id': self.env.user.id,
+                })
         return super(TemporaryOperation, self).write(vals)
 
     # Workflow Actions
@@ -202,7 +226,7 @@ class TemporaryOperation(models.Model):
         self._check_manager_role()
         for record in self:
             if record.state != 'setup':
-                raise ValidationError('Activate is only allowed in Setup state.')
+                raise ValidationError('Start Operation is only allowed in Setup state.')
             record.state = 'active'
 
     def action_closing(self):
@@ -218,11 +242,17 @@ class TemporaryOperation(models.Model):
             if record.state != 'closing':
                 raise ValidationError('Close Operation is only allowed in Closing state.')
             
+            if not record.name or not record.code or not record.start_date or not record.end_date:
+                raise ValidationError("Required operation details are missing.")
+                
+            if record.end_date < record.start_date:
+                raise ValidationError("End Date cannot be earlier than Start Date.")
+                
             outstanding_resources = record.resource_ids.filtered(lambda r: r.status == 'deployed')
             outstanding_equipment = record.equipment_ids.filtered(lambda e: e.status == 'deployed')
             
             if outstanding_resources or outstanding_equipment:
-                raise ValidationError("Operation cannot be closed because some resources are still outstanding.")
+                raise ValidationError("Operation cannot be closed because some resources or equipment are still outstanding (deployed).")
                 
             record.state = 'closed'
 
