@@ -221,6 +221,7 @@ class TemporaryOperation(models.Model):
             if record.state != 'planned':
                 raise ValidationError('Start Setup is only allowed in Planned state.')
             record.state = 'setup'
+        return True
 
     def action_activate(self):
         self._check_manager_role()
@@ -228,6 +229,7 @@ class TemporaryOperation(models.Model):
             if record.state != 'setup':
                 raise ValidationError('Start Operation is only allowed in Setup state.')
             record.state = 'active'
+        return True
 
     def action_closing(self):
         self._check_manager_role()
@@ -235,6 +237,7 @@ class TemporaryOperation(models.Model):
             if record.state != 'active':
                 raise ValidationError('Start Closing is only allowed in Active state.')
             record.state = 'closing'
+        return True
 
     def action_close(self):
         self._check_manager_role()
@@ -255,6 +258,7 @@ class TemporaryOperation(models.Model):
                 raise ValidationError("Operation cannot be closed because some resources or equipment are still outstanding (deployed).")
                 
             record.state = 'closed'
+        return True
 
     def action_cancel(self):
         self._check_manager_role()
@@ -262,6 +266,7 @@ class TemporaryOperation(models.Model):
             if record.state in ('closed', 'cancelled'):
                 raise ValidationError('Cannot cancel an operation that is already closed or cancelled.')
             record.state = 'cancelled'
+        return True
 
     def action_draft(self):
         self._check_manager_role()
@@ -269,3 +274,4 @@ class TemporaryOperation(models.Model):
             if record.state != 'cancelled':
                 raise ValidationError('Reset to Planned is only allowed for Cancelled operations.')
             record.state = 'planned'
+        return True
