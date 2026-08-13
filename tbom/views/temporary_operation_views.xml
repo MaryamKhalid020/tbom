@@ -115,7 +115,7 @@
                 <filter string="Closed" name="closed" domain="[('state', '=', 'closed')]"/>
                 <filter string="Cancelled" name="cancelled" domain="[('state', '=', 'cancelled')]"/>
 
-                <group expand="0" string="Group By">
+                <group>
                     <filter string="Status" name="group_by_state" context="{'group_by': 'state'}"/>
                     <filter string="Operation Type" name="group_by_type" context="{'group_by': 'operation_type'}"/>
                     <filter string="Responsible Manager" name="group_by_responsible" context="{'group_by': 'responsible_id'}"/>

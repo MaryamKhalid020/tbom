@@ -74,7 +74,7 @@
                 <filter string="Lost/Damaged" name="damaged" domain="[('status', '=', 'damaged')]"/>
 
                 <!-- Group By -->
-                <group expand="0" string="Group By">
+                <group>
                     <filter string="Resource Type" name="group_by_type" context="{'group_by': 'resource_type'}"/>
                     <filter string="Status" name="group_by_status" context="{'group_by': 'status'}"/>
                     <filter string="Operation" name="group_by_operation" context="{'group_by': 'operation_id'}"/>
