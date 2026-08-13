@@ -56,8 +56,7 @@ class TemporaryOperation(models.Model):
 
     state = fields.Selection(
         [
-            ('draft', 'Draft'),
-            ('planning', 'Planning'),
+            ('planned', 'Planned'),
             ('setup', 'Setup'),
             ('active', 'Active'),
             ('closing', 'Closing'),
@@ -65,7 +64,7 @@ class TemporaryOperation(models.Model):
             ('cancelled', 'Cancelled'),
         ],
         string='Status',
-        default='draft',
+        default='planned',
         required=True
     )
 
@@ -115,16 +114,10 @@ class TemporaryOperation(models.Model):
                 )
 
     # Workflow Actions
-    def action_planning(self):
-        for record in self:
-            if record.state != 'draft':
-                raise ValidationError('Start Planning is only allowed in Draft state.')
-            record.state = 'planning'
-
     def action_setup(self):
         for record in self:
-            if record.state != 'planning':
-                raise ValidationError('Start Setup is only allowed in Planning state.')
+            if record.state != 'planned':
+                raise ValidationError('Start Setup is only allowed in Planned state.')
             record.state = 'setup'
 
     def action_activate(self):
@@ -154,5 +147,5 @@ class TemporaryOperation(models.Model):
     def action_draft(self):
         for record in self:
             if record.state != 'cancelled':
-                raise ValidationError('Reset to Draft is only allowed for Cancelled operations.')
-            record.state = 'draft'
+                raise ValidationError('Reset to Planned is only allowed for Cancelled operations.')
+            record.state = 'planned'
