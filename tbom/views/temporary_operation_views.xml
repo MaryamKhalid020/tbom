@@ -46,25 +46,28 @@
                             <field name="name" placeholder="e.g. Summer Promotional Exhibition"/>
                         </h1>
                     </div>
-                    <group>
-                        <group string="General Information">
-                            <field name="code" placeholder="e.g. OP-2026-001"/>
-                            <field name="operation_type"/>
-                            <field name="location" placeholder="e.g. Hall A, Exhibition Center"/>
-                            <field name="responsible_id" options="{'no_create': True}"/>
-                            <field name="company_id" groups="base.group_multi_company"/>
-                        </group>
-                        <group>
-                            <group string="Dates">
-                                <field name="start_date"/>
-                                <field name="end_date"/>
-                            </group>
-                            <group string="Financial">
-                                <field name="budget"/>
-                            </group>
-                        </group>
-                    </group>
                     <notebook>
+                        <page string="Overview" name="overview_page">
+                            <group>
+                                <group string="General Information">
+                                    <field name="code" placeholder="e.g. OP-2026-001"/>
+                                    <field name="operation_type"/>
+                                    <field name="location" placeholder="e.g. Hall A, Exhibition Center"/>
+                                    <field name="responsible_id" options="{'no_create': True}"/>
+                                    <field name="company_id" groups="base.group_multi_company"/>
+                                </group>
+                                <group>
+                                    <group string="Dates">
+                                        <field name="start_date"/>
+                                        <field name="end_date"/>
+                                    </group>
+                                    <group string="Financial &amp; Status">
+                                        <field name="budget"/>
+                                        <field name="state" readonly="1" string="Status"/>
+                                    </group>
+                                </group>
+                            </group>
+                        </page>
                         <page string="Employees" name="employees_page">
                             <field name="employee_ids">
                                 <list string="Assigned Employees">
@@ -85,6 +88,46 @@
                                     <field name="status"/>
                                 </list>
                             </field>
+                        </page>
+                        <page string="Equipment" name="equipment_page">
+                            <field name="equipment_ids">
+                                <list string="Equipment" editable="bottom">
+                                    <field name="name"/>
+                                    <field name="employee_id"/>
+                                    <field name="deployment_date"/>
+                                    <field name="return_date"/>
+                                    <field name="status"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Expenses" name="expenses_page">
+                            <field name="expense_ids">
+                                <list string="Expenses" editable="bottom">
+                                    <field name="description"/>
+                                    <field name="date"/>
+                                    <field name="amount"/>
+                                    <field name="employee_id"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Dashboard" name="dashboard_page">
+                            <group string="Operation Summary">
+                                <group string="Status &amp; Staff">
+                                    <field name="state" readonly="1" string="Operation Status"/>
+                                    <field name="employee_count" readonly="1"/>
+                                </group>
+                                <group string="Resources">
+                                    <field name="resource_count" readonly="1"/>
+                                    <field name="planned_resource_count" readonly="1"/>
+                                    <field name="deployed_resource_count" readonly="1"/>
+                                    <field name="returned_resource_count" readonly="1"/>
+                                </group>
+                                <group string="Financials">
+                                    <field name="budget" readonly="1"/>
+                                    <field name="total_expenses" readonly="1"/>
+                                    <field name="remaining_budget" readonly="1"/>
+                                </group>
+                            </group>
                         </page>
                         <page string="Description" name="description_page">
                             <field name="description" placeholder="Describe the temporary operation details here..."/>

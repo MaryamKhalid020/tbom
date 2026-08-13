@@ -1,3 +1,5 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_tbom_temporary_operation,access_tbom_temporary_operation,model_tbom_temporary_operation,base.group_user,1,1,1,1
 access_tbom_resource,access_tbom_resource,model_tbom_resource,base.group_user,1,1,1,1
+access_tbom_expense,access_tbom_expense,model_tbom_expense,base.group_user,1,1,1,1
+access_tbom_equipment,access_tbom_equipment,model_tbom_equipment,base.group_user,1,1,1,1

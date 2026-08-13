@@ -95,6 +95,64 @@ class TemporaryOperation(models.Model):
         string='Resources'
     )
 
+    expense_ids = fields.One2many(
+        'tbom.expense',
+        'operation_id',
+        string='Expenses'
+    )
+
+    equipment_ids = fields.One2many(
+        'tbom.equipment',
+        'operation_id',
+        string='Equipment'
+    )
+
+    employee_count = fields.Integer(
+        string='Employee Count',
+        compute='_compute_dashboard_stats'
+    )
+
+    resource_count = fields.Integer(
+        string='Total Resources',
+        compute='_compute_dashboard_stats'
+    )
+
+    planned_resource_count = fields.Integer(
+        string='Planned Resources',
+        compute='_compute_dashboard_stats'
+    )
+
+    deployed_resource_count = fields.Integer(
+        string='Deployed Resources',
+        compute='_compute_dashboard_stats'
+    )
+
+    returned_resource_count = fields.Integer(
+        string='Returned Resources',
+        compute='_compute_dashboard_stats'
+    )
+
+    total_expenses = fields.Float(
+        string='Total Expenses',
+        compute='_compute_dashboard_stats'
+    )
+
+    remaining_budget = fields.Float(
+        string='Remaining Budget',
+        compute='_compute_dashboard_stats'
+    )
+
+    @api.depends('employee_ids', 'resource_ids', 'budget', 'expense_ids')
+    def _compute_dashboard_stats(self):
+        for record in self:
+            record.employee_count = len(record.employee_ids)
+            record.resource_count = len(record.resource_ids)
+            record.planned_resource_count = len(record.resource_ids.filtered(lambda r: r.status == 'planned'))
+            record.deployed_resource_count = len(record.resource_ids.filtered(lambda r: r.status == 'deployed'))
+            record.returned_resource_count = len(record.resource_ids.filtered(lambda r: r.status == 'returned'))
+            record.total_expenses = sum(record.expense_ids.mapped('amount'))
+            record.remaining_budget = record.budget - record.total_expenses
+
     # Validations
     @api.constrains('start_date', 'end_date')
     def _check_dates(self):
@@ -136,6 +194,13 @@ class TemporaryOperation(models.Model):
         for record in self:
             if record.state != 'closing':
                 raise ValidationError('Close Operation is only allowed in Closing state.')
+            
+            outstanding_resources = record.resource_ids.filtered(lambda r: r.status == 'deployed')
+            outstanding_equipment = record.equipment_ids.filtered(lambda e: e.status == 'deployed')
+            
+            if outstanding_resources or outstanding_equipment:
+                raise ValidationError("Operation cannot be closed because some resources are still outstanding.")
+                
             record.state = 'closed'
 
     def action_cancel(self):
