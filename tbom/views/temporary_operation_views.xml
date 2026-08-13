@@ -3,10 +3,10 @@
 
     <!-- Tree View -->
     <record id="view_temporary_operation_tree" model="ir.ui.view">
-        <field name="name">tbom.temporary.operation.tree</field>
+        <field name="name">tbom.temporary.operation.list</field>
         <field name="model">tbom.temporary.operation</field>
         <field name="arch" type="xml">
-            <tree string="Temporary Operations">
+            <list string="Temporary Operations">
                 <field name="code"/>
                 <field name="name"/>
                 <field name="operation_type"/>
@@ -20,7 +20,7 @@
                        decoration-warning="state == 'setup'" 
                        decoration-success="state == 'active'" 
                        decoration-danger="state == 'cancelled'"/>
-            </tree>
+            </list>
         </field>
     </record>
 
@@ -68,23 +68,23 @@
                     <notebook>
                         <page string="Employees" name="employees_page">
                             <field name="employee_ids">
-                                <tree string="Assigned Employees">
+                                <list string="Assigned Employees">
                                     <field name="name"/>
                                     <field name="job_id"/>
                                     <field name="department_id"/>
                                     <field name="work_email"/>
-                                </tree>
+                                </list>
                             </field>
                         </page>
                         <page string="Resources" name="resources_page">
                             <field name="resource_ids">
-                                <tree string="Resources" editable="bottom">
+                                <list string="Resources" editable="bottom">
                                     <field name="name"/>
                                     <field name="resource_type"/>
                                     <field name="quantity"/>
                                     <field name="assigned_employee_id"/>
                                     <field name="status"/>
-                                </tree>
+                                </list>
                             </field>
                         </page>
                         <page string="Description" name="description_page">
@@ -176,19 +176,19 @@
 
     <!-- Window Action -->
     <record id="action_temporary_operation" model="ir.actions.act_window">
-        <name>Temporary Operations</name>
-        <type>ir.actions.act_window</type>
-        <res_model>tbom.temporary.operation</res_model>
-        <view_mode>kanban,tree,form</view_mode>
-        <search_view_id ref="view_temporary_operation_search"/>
-        <help type="html">
+        <field name="name">Temporary Operations</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">tbom.temporary.operation</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="search_view_id" ref="view_temporary_operation_search"/>
+        <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
                 Create a new Temporary Operation
             </p>
             <p>
                 Define temporary, time- and location-bound business operations.
             </p>
-        </help>
+        </field>
     </record>
 
     <!-- Menu Structure -->

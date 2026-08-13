@@ -3,10 +3,10 @@
 
     <!-- Tree View -->
     <record id="view_tbom_resource_tree" model="ir.ui.view">
-        <field name="name">tbom.resource.tree</field>
+        <field name="name">tbom.resource.list</field>
         <field name="model">tbom.resource</field>
         <field name="arch" type="xml">
-            <tree string="Resources">
+            <list string="Resources">
                 <field name="name"/>
                 <field name="resource_type"/>
                 <field name="quantity"/>
@@ -17,7 +17,7 @@
                        decoration-warning="status == 'deployed'"
                        decoration-success="status == 'returned'"
                        decoration-danger="status == 'damaged'"/>
-            </tree>
+            </list>
         </field>
     </record>
 
@@ -85,19 +85,19 @@
 
     <!-- Action -->
     <record id="action_tbom_resource" model="ir.actions.act_window">
-        <name>Resources</name>
-        <type>ir.actions.act_window</type>
-        <res_model>tbom.resource</res_model>
-        <view_mode>tree,form</view_mode>
-        <search_view_id ref="view_tbom_resource_search"/>
-        <help type="html">
+        <field name="name">Resources</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">tbom.resource</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_tbom_resource_search"/>
+        <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
                 Register a new Resource
             </p>
             <p>
                 Allocate and track resources (equipment, vehicles, etc.) deployed for temporary operations.
             </p>
-        </help>
+        </field>
     </record>
 
     <!-- Menu Structure -->
