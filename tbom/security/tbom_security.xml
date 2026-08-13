@@ -1,23 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Module Category for TBOM -->
-    <record id="module_category_tbom" model="ir.module.category">
-        <field name="name">TBOM Resource Management</field>
-        <field name="description">Category for Temporary Business Operation Management</field>
-        <field name="sequence">10</field>
-    </record>
-
     <!-- User Group -->
     <record id="group_tbom_user" model="res.groups">
         <field name="name">User</field>
-        <field name="category_id" ref="module_category_tbom"/>
         <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
     </record>
 
     <!-- Manager Group -->
     <record id="group_tbom_manager" model="res.groups">
         <field name="name">Manager</field>
-        <field name="category_id" ref="module_category_tbom"/>
         <field name="implied_ids" eval="[(4, ref('group_tbom_user'))]"/>
     </record>
 </odoo>
+
