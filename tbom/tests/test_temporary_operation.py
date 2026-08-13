@@ -262,3 +262,98 @@ class TestTemporaryOperationLifecycle(TransactionCase):
         # Close should now succeed
         op.action_close()
         self.assertEqual(op.state, 'closed')
+
+    def test_budget_utilization_calculations(self):
+        """Test budget utilization calculations including division-by-zero prevention."""
+        op = self.operation_model.create({
+            'name': 'Exhibition Budget',
+            'code': 'OP-2026-BDG',
+            'operation_type': 'exhibition',
+            'location': 'Hall 1',
+            'start_date': '2026-09-01',
+            'end_date': '2026-09-15',
+            'budget': 1000.0,
+        })
+        # 0 expense
+        op._compute_dashboard_stats()
+        self.assertEqual(op.budget_utilization, 0.0)
+
+        # 500 expense (50% utilization)
+        self.env['tbom.expense'].create({
+            'operation_id': op.id,
+            'description': 'Rent',
+            'amount': 500.0,
+            'date': '2026-09-02',
+        })
+        op._compute_dashboard_stats()
+        self.assertEqual(op.budget_utilization, 50.0)
+
+        # 0 budget operation
+        op_zero = self.operation_model.create({
+            'name': 'Zero Budget',
+            'code': 'OP-2026-BDG-ZERO',
+            'operation_type': 'exhibition',
+            'location': 'Hall 1',
+            'start_date': '2026-09-01',
+            'end_date': '2026-09-15',
+            'budget': 0.0,
+        })
+        op_zero._compute_dashboard_stats()
+        self.assertEqual(op_zero.budget_utilization, 0.0)
+
+    def test_manager_role_transitions(self):
+        """Test that users without TBOM Manager group are blocked from transitioning states."""
+        op = self.operation_model.create({
+            'name': 'Role Test',
+            'code': 'OP-2026-ROLE',
+            'operation_type': 'exhibition',
+            'location': 'Hall 1',
+            'start_date': '2026-09-01',
+            'end_date': '2026-09-15',
+        })
+        # Create a non-manager user
+        user = self.env['res.users'].create({
+            'name': 'Test User',
+            'login': 'testuser',
+            'email': 'testuser@example.com',
+            'groups_id': [(6, 0, [self.env.ref('base.group_user').id])]
+        })
+        
+        # Call action_setup as test user -> should raise ValidationError
+        with self.assertRaises(ValidationError):
+            op.with_user(user).action_setup()
+
+    def test_closed_record_write_block(self):
+        """Test that closed or cancelled records block updates/edits."""
+        op = self.operation_model.create({
+            'name': 'Write Block Test',
+            'code': 'OP-2026-WRITE',
+            'operation_type': 'exhibition',
+            'location': 'Hall 1',
+            'start_date': '2026-09-01',
+            'end_date': '2026-09-15',
+        })
+        op.action_setup()
+        op.action_activate()
+        op.action_closing()
+        op.action_close()
+        
+        # Any write modification should raise ValidationError
+        with self.assertRaises(ValidationError):
+            op.write({'name': 'New Name'})
+
+    def test_report_rendering(self):
+        """Test final report generation and rendering without syntax issues."""
+        op = self.operation_model.create({
+            'name': 'Report Test',
+            'code': 'OP-2026-REP',
+            'operation_type': 'exhibition',
+            'location': 'Hall 1',
+            'start_date': '2026-09-01',
+            'end_date': '2026-09-15',
+            'budget': 2000.0,
+        })
+        # Render the PDF report QWeb HTML
+        report = self.env['ir.actions.report']._get_report_from_name('tbom.report_temporary_operation_template')
+        html_content, report_format = report._render_qweb_html([op.id])
+        self.assertTrue(html_content)

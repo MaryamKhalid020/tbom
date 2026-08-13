@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Report Action -->
+    <record id="action_report_temporary_operation" model="ir.actions.report">
+        <field name="name">Final Operation Report</field>
+        <field name="model">tbom.temporary.operation</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">tbom.report_temporary_operation_template</field>
+        <field name="report_file">tbom.report_temporary_operation_template</field>
+        <field name="print_report_name">'Final_Report_%s' % (object.code or object.name)</field>
+        <field name="binding_model_id" ref="model_tbom_temporary_operation"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <!-- Report Template -->
+    <template id="report_temporary_operation_template">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <div class="oe_structure"/>
+                        
+                        <div class="text-center" style="border-bottom: 2px solid black; margin-bottom: 20px; padding-bottom: 10px;">
+                            <h2>Temporary Business Operation Final Report</h2>
+                            <h3><t t-out="o.name"/> (<t t-out="o.code"/>)</h3>
+                        </div>
+
+                        <div class="row" style="margin-bottom: 20px;">
+                            <div class="col-6">
+                                <strong>Operation Code:</strong> <t t-out="o.code"/><br/>
+                                <strong>Operation Type:</strong> <t t-out="o.operation_type"/><br/>
+                                <strong>Location:</strong> <t t-out="o.location"/><br/>
+                                <strong>Responsible Manager:</strong> <t t-out="o.responsible_id.name"/><br/>
+                            </div>
+                            <div class="col-6">
+                                <strong>Start Date:</strong> <t t-out="o.start_date"/><br/>
+                                <strong>End Date:</strong> <t t-out="o.end_date"/><br/>
+                                <strong>Final Status:</strong> <t t-out="o.state"/><br/>
+                            </div>
+                        </div>
+
+                        <h4 style="border-bottom: 1px solid #ddd; padding-bottom: 5px; margin-top: 20px;">Financial Summary</h4>
+                        <table class="table table-sm table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Total Budget</th>
+                                    <th>Total Tracked Expenses</th>
+                                    <th>Remaining Budget</th>
+                                    <th>Budget Utilization</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><t t-out="o.budget" t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/></td>
+                                    <td><t t-out="o.total_expenses" t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/></td>
+                                    <td><t t-out="o.remaining_budget" t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/></td>
+                                    <td><t t-out="o.budget_utilization"/>%</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <h4 style="border-bottom: 1px solid #ddd; padding-bottom: 5px; margin-top: 20px;">Assigned Employees</h4>
+                        <table class="table table-sm table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Job Title</th>
+                                    <th>Department</th>
+                                    <th>Email</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="o.employee_ids" t-as="emp">
+                                    <tr>
+                                        <td><t t-out="emp.name"/></td>
+                                        <td><t t-out="emp.job_id.name"/></td>
+                                        <td><t t-out="emp.department_id.name"/></td>
+                                        <td><t t-out="emp.work_email"/></td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+
+                        <h4 style="border-bottom: 1px solid #ddd; padding-bottom: 5px; margin-top: 20px;">Resources &amp; Equipment Summary</h4>
+                        <div class="row">
+                            <div class="col-6">
+                                <h5>Assigned Resources</h5>
+                                <table class="table table-sm table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Resource</th>
+                                            <th>Type</th>
+                                            <th>Quantity</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="o.resource_ids" t-as="res">
+                                            <tr>
+                                                <td><t t-out="res.name"/></td>
+                                                <td><t t-out="res.resource_type"/></td>
+                                                <td><t t-out="res.quantity"/></td>
+                                                <td><t t-out="res.status"/></td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="col-6">
+                                <h5>Assigned Equipment</h5>
+                                <table class="table table-sm table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Equipment</th>
+                                            <th>Employee</th>
+                                            <th>Deployment Date</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="o.equipment_ids" t-as="eqp">
+                                            <tr>
+                                                <td><t t-out="eqp.name"/></td>
+                                                <td><t t-out="eqp.employee_id.name"/></td>
+                                                <td><t t-out="eqp.deployment_date"/></td>
+                                                <td><t t-out="eqp.status"/></td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <h4 style="border-bottom: 1px solid #ddd; padding-bottom: 5px; margin-top: 20px;">Tracked Expenses Detail</h4>
+                        <table class="table table-sm table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Description</th>
+                                    <th>Employee</th>
+                                    <th>Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="o.expense_ids" t-as="exp">
+                                    <tr>
+                                        <td><t t-out="exp.date"/></td>
+                                        <td><t t-out="exp.description"/></td>
+                                        <td><t t-out="exp.employee_id.name"/></td>
+                                        <td><t t-out="exp.amount" t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/></td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+
+                        <div class="oe_structure"/>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

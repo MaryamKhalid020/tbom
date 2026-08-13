@@ -1,5 +1,9 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_tbom_temporary_operation,access_tbom_temporary_operation,model_tbom_temporary_operation,base.group_user,1,1,1,1
-access_tbom_resource,access_tbom_resource,model_tbom_resource,base.group_user,1,1,1,1
-access_tbom_expense,access_tbom_expense,model_tbom_expense,base.group_user,1,1,1,1
-access_tbom_equipment,access_tbom_equipment,model_tbom_equipment,base.group_user,1,1,1,1
+access_tbom_temporary_operation_user,access_tbom_temporary_operation_user,model_tbom_temporary_operation,tbom.group_tbom_user,1,1,1,0
+access_tbom_temporary_operation_mgr,access_tbom_temporary_operation_mgr,model_tbom_temporary_operation,tbom.group_tbom_manager,1,1,1,1
+access_tbom_resource_user,access_tbom_resource_user,model_tbom_resource,tbom.group_tbom_user,1,1,1,0
+access_tbom_resource_mgr,access_tbom_resource_mgr,model_tbom_resource,tbom.group_tbom_manager,1,1,1,1
+access_tbom_expense_user,access_tbom_expense_user,model_tbom_expense,tbom.group_tbom_user,1,1,1,0
+access_tbom_expense_mgr,access_tbom_expense_mgr,model_tbom_expense,tbom.group_tbom_manager,1,1,1,1
+access_tbom_equipment_user,access_tbom_equipment_user,model_tbom_equipment,tbom.group_tbom_user,1,1,1,0
+access_tbom_equipment_mgr,access_tbom_equipment_mgr,model_tbom_equipment,tbom.group_tbom_manager,1,1,1,1

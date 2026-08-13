@@ -29,14 +29,14 @@
         <field name="name">tbom.temporary.operation.form</field>
         <field name="model">tbom.temporary.operation</field>
         <field name="arch" type="xml">
-            <form string="Temporary Operation">
+            <form string="Temporary Operation" edit="state not in ('closed', 'cancelled')">
                 <header>
-                    <button name="action_setup" string="Start Setup" type="object" class="oe_highlight" invisible="state != 'planned'"/>
-                    <button name="action_activate" string="Activate" type="object" class="oe_highlight" invisible="state != 'setup'"/>
-                    <button name="action_closing" string="Start Closing" type="object" class="oe_highlight" invisible="state != 'active'"/>
-                    <button name="action_close" string="Close Operation" type="object" class="oe_highlight" invisible="state != 'closing'"/>
-                    <button name="action_cancel" string="Cancel" type="object" invisible="state in ('closed', 'cancelled')"/>
-                    <button name="action_draft" string="Reset to Planned" type="object" invisible="state != 'cancelled'"/>
+                    <button name="action_setup" string="Start Setup" type="object" class="oe_highlight" invisible="state != 'planned'" groups="tbom.group_tbom_manager"/>
+                    <button name="action_activate" string="Activate" type="object" class="oe_highlight" invisible="state != 'setup'" groups="tbom.group_tbom_manager"/>
+                    <button name="action_closing" string="Start Closing" type="object" class="oe_highlight" invisible="state != 'active'" groups="tbom.group_tbom_manager"/>
+                    <button name="action_close" string="Close Operation" type="object" class="oe_highlight" invisible="state != 'closing'" groups="tbom.group_tbom_manager"/>
+                    <button name="action_cancel" string="Cancel" type="object" invisible="state in ('closed', 'cancelled')" groups="tbom.group_tbom_manager"/>
+                    <button name="action_draft" string="Reset to Planned" type="object" invisible="state != 'cancelled'" groups="tbom.group_tbom_manager"/>
                     <field name="state" widget="statusbar" statusbar_visible="planned,setup,active,closing,closed"/>
                 </header>
                 <sheet>
@@ -126,6 +126,7 @@
                                     <field name="budget" readonly="1"/>
                                     <field name="total_expenses" readonly="1"/>
                                     <field name="remaining_budget" readonly="1"/>
+                                    <field name="budget_utilization" readonly="1"/>
                                 </group>
                             </group>
                         </page>

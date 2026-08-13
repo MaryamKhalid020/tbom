@@ -142,6 +142,11 @@ class TemporaryOperation(models.Model):
         compute='_compute_dashboard_stats'
     )
 
+    budget_utilization = fields.Float(
+        string='Budget Utilization (%)',
+        compute='_compute_dashboard_stats'
+    )
+
     @api.depends('employee_ids', 'resource_ids', 'budget', 'expense_ids')
     def _compute_dashboard_stats(self):
         for record in self:
@@ -152,6 +157,10 @@ class TemporaryOperation(models.Model):
             record.returned_resource_count = len(record.resource_ids.filtered(lambda r: r.status == 'returned'))
             record.total_expenses = sum(record.expense_ids.mapped('amount'))
             record.remaining_budget = record.budget - record.total_expenses
+            if record.budget > 0:
+                record.budget_utilization = (record.total_expenses / record.budget) * 100
+            else:
+                record.budget_utilization = 0.0
 
     # Validations
     @api.constrains('start_date', 'end_date')
@@ -171,26 +180,40 @@ class TemporaryOperation(models.Model):
                     'Budget cannot be negative.'
                 )
 
+    def write(self, vals):
+        for record in self:
+            if record.state in ('closed', 'cancelled') and not any(k in vals for k in ['state']):
+                raise ValidationError('Closed or cancelled operations cannot be edited.')
+        return super(TemporaryOperation, self).write(vals)
+
     # Workflow Actions
+    def _check_manager_role(self):
+        if not (self.env.su or self.env.user.has_group('tbom.group_tbom_manager')):
+            raise ValidationError('Only Managers are allowed to transition operation states.')
+
     def action_setup(self):
+        self._check_manager_role()
         for record in self:
             if record.state != 'planned':
                 raise ValidationError('Start Setup is only allowed in Planned state.')
             record.state = 'setup'
 
     def action_activate(self):
+        self._check_manager_role()
         for record in self:
             if record.state != 'setup':
                 raise ValidationError('Activate is only allowed in Setup state.')
             record.state = 'active'
 
     def action_closing(self):
+        self._check_manager_role()
         for record in self:
             if record.state != 'active':
                 raise ValidationError('Start Closing is only allowed in Active state.')
             record.state = 'closing'
 
     def action_close(self):
+        self._check_manager_role()
         for record in self:
             if record.state != 'closing':
                 raise ValidationError('Close Operation is only allowed in Closing state.')
@@ -204,12 +227,14 @@ class TemporaryOperation(models.Model):
             record.state = 'closed'
 
     def action_cancel(self):
+        self._check_manager_role()
         for record in self:
             if record.state in ('closed', 'cancelled'):
                 raise ValidationError('Cannot cancel an operation that is already closed or cancelled.')
             record.state = 'cancelled'
 
     def action_draft(self):
+        self._check_manager_role()
         for record in self:
             if record.state != 'cancelled':
                 raise ValidationError('Reset to Planned is only allowed for Cancelled operations.')

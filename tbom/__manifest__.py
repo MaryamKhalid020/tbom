@@ -26,9 +26,11 @@ with a temporary operation.
         'hr',
     ],
     'data': [
+        'security/tbom_security.xml',
         'security/ir.model.access.csv',
         'views/temporary_operation_views.xml',
         'views/tbom_resource_views.xml',
+        'reports/temporary_operation_reports.xml',
     ],
     'installable': True,
     'application': True,
