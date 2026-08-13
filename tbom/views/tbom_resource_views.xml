@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Tree View -->
+    <record id="view_tbom_resource_tree" model="ir.ui.view">
+        <field name="name">tbom.resource.tree</field>
+        <field name="model">tbom.resource</field>
+        <field name="arch" type="xml">
+            <tree string="Resources">
+                <field name="name"/>
+                <field name="resource_type"/>
+                <field name="quantity"/>
+                <field name="operation_id"/>
+                <field name="assigned_employee_id"/>
+                <field name="status" widget="badge"
+                       decoration-info="status == 'planned'"
+                       decoration-warning="status == 'deployed'"
+                       decoration-success="status == 'returned'"
+                       decoration-danger="status == 'damaged'"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="view_tbom_resource_form" model="ir.ui.view">
+        <field name="name">tbom.resource.form</field>
+        <field name="model">tbom.resource</field>
+        <field name="arch" type="xml">
+            <form string="Resource">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name" class="oe_edit_only"/>
+                        <h1>
+                            <field name="name" placeholder="e.g. Dell Latitude Laptop"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Resource Details">
+                            <field name="resource_type"/>
+                            <field name="quantity"/>
+                            <field name="operation_id"/>
+                        </group>
+                        <group string="Assignment &amp; Status">
+                            <field name="assigned_employee_id"/>
+                            <field name="status"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Description" name="description_page">
+                            <field name="description" placeholder="Add additional resource notes here..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Search View -->
+    <record id="view_tbom_resource_search" model="ir.ui.view">
+        <field name="name">tbom.resource.search</field>
+        <field name="model">tbom.resource</field>
+        <field name="arch" type="xml">
+            <search string="Search Resources">
+                <field name="name" string="Resource Name"/>
+                <field name="resource_type"/>
+                <field name="operation_id"/>
+                <field name="assigned_employee_id"/>
+                <field name="status"/>
+
+                <!-- Filters -->
+                <filter string="Planned" name="planned" domain="[('status', '=', 'planned')]"/>
+                <filter string="Deployed" name="deployed" domain="[('status', '=', 'deployed')]"/>
+                <filter string="Returned" name="returned" domain="[('status', '=', 'returned')]"/>
+                <filter string="Lost/Damaged" name="damaged" domain="[('status', '=', 'damaged')]"/>
+
+                <!-- Group By -->
+                <group expand="0" string="Group By">
+                    <filter string="Resource Type" name="group_by_type" context="{'group_by': 'resource_type'}"/>
+                    <filter string="Status" name="group_by_status" context="{'group_by': 'status'}"/>
+                    <filter string="Operation" name="group_by_operation" context="{'group_by': 'operation_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_tbom_resource" model="ir.actions.act_window">
+        <name>Resources</name>
+        <type>ir.actions.act_window</type>
+        <res_model>tbom.resource</res_model>
+        <view_mode>tree,form</view_mode>
+        <search_view_id ref="view_tbom_resource_search"/>
+        <help type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Register a new Resource
+            </p>
+            <p>
+                Allocate and track resources (equipment, vehicles, etc.) deployed for temporary operations.
+            </p>
+        </help>
+    </record>
+
+    <!-- Menu Structure -->
+    <menuitem id="menu_tbom_resource_sub"
+              name="Resources"
+              parent="menu_tbom_root"
+              sequence="10"/>
+
+    <menuitem id="menu_tbom_resource"
+              name="Resources"
+              parent="menu_tbom_resource_sub"
+              action="action_tbom_resource"
+              sequence="10"/>
+
+</odoo>

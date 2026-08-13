@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Tree View -->
+    <record id="view_temporary_operation_tree" model="ir.ui.view">
+        <field name="name">tbom.temporary.operation.tree</field>
+        <field name="model">tbom.temporary.operation</field>
+        <field name="arch" type="xml">
+            <tree string="Temporary Operations">
+                <field name="code"/>
+                <field name="name"/>
+                <field name="operation_type"/>
+                <field name="location"/>
+                <field name="start_date"/>
+                <field name="end_date"/>
+                <field name="responsible_id"/>
+                <field name="budget"/>
+                <field name="state" widget="badge" 
+                       decoration-info="state in ('draft', 'planning')" 
+                       decoration-warning="state == 'setup'" 
+                       decoration-success="state == 'active'" 
+                       decoration-danger="state == 'cancelled'"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="view_temporary_operation_form" model="ir.ui.view">
+        <field name="name">tbom.temporary.operation.form</field>
+        <field name="model">tbom.temporary.operation</field>
+        <field name="arch" type="xml">
+            <form string="Temporary Operation">
+                <header>
+                    <button name="action_planning" string="Start Planning" type="object" class="oe_highlight" invisible="state != 'draft'"/>
+                    <button name="action_setup" string="Start Setup" type="object" class="oe_highlight" invisible="state != 'planning'"/>
+                    <button name="action_activate" string="Activate" type="object" class="oe_highlight" invisible="state != 'setup'"/>
+                    <button name="action_closing" string="Start Closing" type="object" class="oe_highlight" invisible="state != 'active'"/>
+                    <button name="action_close" string="Close Operation" type="object" class="oe_highlight" invisible="state != 'closing'"/>
+                    <button name="action_cancel" string="Cancel" type="object" invisible="state in ('closed', 'cancelled')"/>
+                    <button name="action_draft" string="Reset to Draft" type="object" invisible="state != 'cancelled'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,planning,setup,active,closing,closed"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name" class="oe_edit_only"/>
+                        <h1>
+                            <field name="name" placeholder="e.g. Summer Promotional Exhibition"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="General Information">
+                            <field name="code" placeholder="e.g. OP-2026-001"/>
+                            <field name="operation_type"/>
+                            <field name="location" placeholder="e.g. Hall A, Exhibition Center"/>
+                            <field name="responsible_id" options="{'no_create': True}"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                        <group>
+                            <group string="Dates">
+                                <field name="start_date"/>
+                                <field name="end_date"/>
+                            </group>
+                            <group string="Financial">
+                                <field name="budget"/>
+                            </group>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Employees" name="employees_page">
+                            <field name="employee_ids">
+                                <tree string="Assigned Employees">
+                                    <field name="name"/>
+                                    <field name="job_id"/>
+                                    <field name="department_id"/>
+                                    <field name="work_email"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Resources" name="resources_page">
+                            <field name="resource_ids">
+                                <tree string="Resources" editable="bottom">
+                                    <field name="name"/>
+                                    <field name="resource_type"/>
+                                    <field name="quantity"/>
+                                    <field name="assigned_employee_id"/>
+                                    <field name="status"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Description" name="description_page">
+                            <field name="description" placeholder="Describe the temporary operation details here..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Search View -->
+    <record id="view_temporary_operation_search" model="ir.ui.view">
+        <field name="name">tbom.temporary.operation.search</field>
+        <field name="model">tbom.temporary.operation</field>
+        <field name="arch" type="xml">
+            <search string="Search Temporary Operations">
+                <field name="name" string="Operation Name"/>
+                <field name="code" string="Operation Code"/>
+                <field name="location"/>
+                <field name="responsible_id"/>
+
+                <filter string="Draft" name="draft" domain="[('state', '=', 'draft')]"/>
+                <filter string="Planning" name="planning" domain="[('state', '=', 'planning')]"/>
+                <filter string="Setup" name="setup" domain="[('state', '=', 'setup')]"/>
+                <filter string="Active" name="active" domain="[('state', '=', 'active')]"/>
+                <filter string="Closing" name="closing" domain="[('state', '=', 'closing')]"/>
+                <filter string="Closed" name="closed" domain="[('state', '=', 'closed')]"/>
+                <filter string="Cancelled" name="cancelled" domain="[('state', '=', 'cancelled')]"/>
+
+                <group expand="0" string="Group By">
+                    <filter string="Status" name="group_by_state" context="{'group_by': 'state'}"/>
+                    <filter string="Operation Type" name="group_by_type" context="{'group_by': 'operation_type'}"/>
+                    <filter string="Responsible Manager" name="group_by_responsible" context="{'group_by': 'responsible_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Kanban View -->
+    <record id="view_temporary_operation_kanban" model="ir.ui.view">
+        <field name="name">tbom.temporary.operation.kanban</field>
+        <field name="model">tbom.temporary.operation</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state" class="o_kanban_small_column" records_draggable="false">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="operation_type"/>
+                <field name="location"/>
+                <field name="start_date"/>
+                <field name="end_date"/>
+                <field name="responsible_id"/>
+                <field name="budget"/>
+                <field name="state"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="oe_kanban_global_click oe_kanban_card">
+                            <div class="oe_kanban_content">
+                                <div class="o_kanban_record_title oe_kanban_details">
+                                    <strong><field name="name"/></strong>
+                                </div>
+                                <div class="text-muted">
+                                    <span>Code: <field name="code"/></span>
+                                </div>
+                                <div>
+                                    <span>Type: <field name="operation_type"/></span>
+                                </div>
+                                <div>
+                                    <span>Location: <field name="location"/></span>
+                                </div>
+                                <div class="text-muted small">
+                                    <span><field name="start_date"/> to <field name="end_date"/></span>
+                                </div>
+                                <div class="o_kanban_record_bottom mt8">
+                                    <div class="oe_kanban_bottom_left text-info font-weight-bold">
+                                        <span>Budget: <field name="budget"/></span>
+                                    </div>
+                                    <div class="oe_kanban_bottom_right">
+                                        <field name="responsible_id" widget="many2one_avatar_user"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Window Action -->
+    <record id="action_temporary_operation" model="ir.actions.act_window">
+        <name>Temporary Operations</name>
+        <type>ir.actions.act_window</type>
+        <res_model>tbom.temporary.operation</res_model>
+        <view_mode>kanban,tree,form</view_mode>
+        <search_view_id ref="view_temporary_operation_search"/>
+        <help type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a new Temporary Operation
+            </p>
+            <p>
+                Define temporary, time- and location-bound business operations.
+            </p>
+        </help>
+    </record>
+
+    <!-- Menu Structure -->
+    <menuitem id="menu_tbom_root" 
+              name="TBOM" 
+              sequence="10"/>
+
+    <menuitem id="menu_temporary_operation_sub"
+              name="Operations"
+              parent="menu_tbom_root"
+              sequence="5"/>
+
+    <menuitem id="menu_temporary_operation" 
+              name="Temporary Operations" 
+              parent="menu_temporary_operation_sub" 
+              action="action_temporary_operation" 
+              sequence="10"/>
+
+</odoo>
