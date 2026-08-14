@@ -202,10 +202,53 @@ class TemporaryOperation(models.Model):
             if record.state in ('closed', 'cancelled') and not any(k in vals for k in ['state']):
                 raise ValidationError('Closed or cancelled operations cannot be edited.')
             if 'state' in vals and vals['state'] != record.state:
+                self._check_manager_role()
+                old_state = record.state
+                new_state = vals['state']
+
+                # Validate transition rules
+                if new_state == 'setup':
+                    if old_state != 'planned':
+                        raise ValidationError('Start Setup is only allowed in Planned state.')
+                elif new_state == 'active':
+                    if old_state != 'setup':
+                        raise ValidationError('Start Operation is only allowed in Setup state.')
+                elif new_state == 'closing':
+                    if old_state != 'active':
+                        raise ValidationError('Start Closing is only allowed in Active state.')
+                elif new_state == 'closed':
+                    if old_state != 'closing':
+                        raise ValidationError('Close Operation is only allowed in Closing state.')
+                    
+                    # Extract validation fields from vals, falling back to record values
+                    name = vals.get('name', record.name)
+                    code = vals.get('code', record.code)
+                    start_date = vals.get('start_date', record.start_date)
+                    end_date = vals.get('end_date', record.end_date)
+                    
+                    if not name or not code or not start_date or not end_date:
+                        raise ValidationError("Required operation details are missing.")
+                    if end_date < start_date:
+                        raise ValidationError("End Date cannot be earlier than Start Date.")
+                    
+                    outstanding_resources = record.resource_ids.filtered(lambda r: r.status == 'deployed')
+                    outstanding_equipment = record.equipment_ids.filtered(lambda e: e.status == 'deployed')
+                    if outstanding_resources or outstanding_equipment:
+                        raise ValidationError("Operation cannot be closed because some resources or equipment are still outstanding (deployed).")
+                elif new_state == 'cancelled':
+                    if old_state in ('closed', 'cancelled'):
+                        raise ValidationError('Cannot cancel an operation that is already closed or cancelled.')
+                elif new_state == 'planned':
+                    if old_state != 'cancelled':
+                        raise ValidationError('Reset to Planned is only allowed for Cancelled operations.')
+                else:
+                    raise ValidationError('Invalid status.')
+
+                # Create state history record
                 self.env['tbom.operation.state.history'].create({
                     'operation_id': record.id,
-                    'previous_state': record.state,
-                    'new_state': vals['state'],
+                    'previous_state': old_state,
+                    'new_state': new_state,
                     'user_id': self.env.user.id,
                 })
         return super(TemporaryOperation, self).write(vals)

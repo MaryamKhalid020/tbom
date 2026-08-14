@@ -1,149 +1,293 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <!-- Tree View -->
+    <!-- ===================================================================
+         LIST VIEW — Temporary Operations
+    =================================================================== -->
     <record id="view_temporary_operation_tree" model="ir.ui.view">
         <field name="name">tbom.temporary.operation.list</field>
         <field name="model">tbom.temporary.operation</field>
         <field name="arch" type="xml">
-            <list string="Temporary Operations">
+            <list string="Temporary Operations"
+                  decoration-muted="state == 'cancelled'"
+                  decoration-success="state == 'active'"
+                  decoration-warning="state == 'setup' or state == 'closing'"
+                  decoration-info="state == 'planned'">
                 <field name="code"/>
                 <field name="name"/>
-                <field name="operation_type"/>
-                <field name="location"/>
+                <field name="location" optional="show"/>
+                <field name="operation_type" optional="show"/>
                 <field name="start_date"/>
                 <field name="end_date"/>
-                <field name="responsible_id"/>
-                <field name="budget"/>
-                <field name="state" widget="badge" 
-                       decoration-info="state == 'planned'" 
-                       decoration-warning="state == 'setup'" 
-                       decoration-success="state == 'active'" 
+                <field name="responsible_id" optional="show" widget="many2one_avatar_user"/>
+                <field name="budget" optional="show"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'planned'"
+                       decoration-warning="state == 'setup' or state == 'closing'"
+                       decoration-success="state == 'active'"
                        decoration-danger="state == 'cancelled'"/>
             </list>
         </field>
     </record>
 
-    <!-- Form View -->
+    <!-- ===================================================================
+         FORM VIEW — Temporary Operation (Operations Control Center)
+    =================================================================== -->
     <record id="view_temporary_operation_form" model="ir.ui.view">
         <field name="name">tbom.temporary.operation.form</field>
         <field name="model">tbom.temporary.operation</field>
         <field name="arch" type="xml">
             <form string="Temporary Operation">
+
+                <!-- ── WORKFLOW HEADER ─────────────────────────────────── -->
                 <header>
-                    <button name="action_setup" string="Start Setup" type="object" class="oe_highlight" invisible="state != 'planned'" groups="tbom.group_tbom_manager"/>
-                    <button name="action_activate" string="Start Operation" type="object" class="oe_highlight" invisible="state != 'setup'" groups="tbom.group_tbom_manager"/>
-                    <button name="action_closing" string="Start Closing" type="object" class="oe_highlight" invisible="state != 'active'" groups="tbom.group_tbom_manager"/>
-                    <button name="action_close" string="Close Operation" type="object" class="oe_highlight" invisible="state != 'closing'" groups="tbom.group_tbom_manager" confirm="Are you sure you want to close this operation? Once closed, it cannot be edited."/>
-                    <button name="%(tbom.action_report_temporary_operation)d" string="Print Final Report" type="action" class="oe_highlight" invisible="state != 'closed'"/>
-                    <button name="action_cancel" string="Cancel" type="object" invisible="state in ('closed', 'cancelled')" groups="tbom.group_tbom_manager"/>
-                    <button name="action_draft" string="Reset to Planned" type="object" invisible="state != 'cancelled'" groups="tbom.group_tbom_manager"/>
-                    <field name="state" widget="statusbar" statusbar_visible="planned,setup,active,closing,closed"/>
+                    <!-- Primary workflow action (only one visible at a time) -->
+                    <button name="action_setup"
+                            string="Start Setup"
+                            type="object"
+                            class="oe_highlight"
+                            invisible="state != 'planned'"
+                            groups="tbom.group_tbom_manager"/>
+                    <button name="action_activate"
+                            string="Start Operation"
+                            type="object"
+                            class="oe_highlight"
+                            invisible="state != 'setup'"
+                            groups="tbom.group_tbom_manager"/>
+                    <button name="action_closing"
+                            string="Start Closing"
+                            type="object"
+                            class="oe_highlight"
+                            invisible="state != 'active'"
+                            groups="tbom.group_tbom_manager"/>
+                    <button name="action_close"
+                            string="Close Operation"
+                            type="object"
+                            class="oe_highlight"
+                            invisible="state != 'closing'"
+                            groups="tbom.group_tbom_manager"
+                            confirm="Are you sure you want to close this operation? Once closed, it cannot be edited."/>
+                    <!-- Post-close action -->
+                    <button name="%(tbom.action_report_temporary_operation)d"
+                            string="Print Final Report"
+                            type="action"
+                            class="oe_highlight"
+                            invisible="state != 'closed'"/>
+                    <!-- Secondary (less prominent) -->
+                    <button name="action_cancel"
+                            string="Cancel"
+                            type="object"
+                            invisible="state in ('closed', 'cancelled')"
+                            groups="tbom.group_tbom_manager"/>
+                    <button name="action_draft"
+                            string="Reset to Planned"
+                            type="object"
+                            invisible="state != 'cancelled'"
+                            groups="tbom.group_tbom_manager"/>
+                    <!-- Status bar — the lifecycle hero -->
+                    <field name="state"
+                           widget="statusbar"
+                           statusbar_visible="planned,setup,active,closing,closed"
+                           options="{'clickable': '1'}"/>
                 </header>
+
+                <!-- ── FORM SHEET ───────────────────────────────────────── -->
                 <sheet>
+
+                    <!-- Operation Identity Block -->
                     <div class="oe_title">
-                        <label for="name" class="oe_edit_only"/>
+                        <label for="name"/>
                         <h1>
-                            <field name="name" placeholder="e.g. Summer Promotional Exhibition"/>
+                            <field name="name"
+                                   placeholder="e.g. Summer Promotional Exhibition"/>
                         </h1>
+                        <div class="text-muted small">
+                            <field name="code" placeholder="e.g. OP-2026-001"/>
+                        </div>
                     </div>
+
+                    <!-- Core Operation Fields -->
+                    <group>
+                        <group string="Operation Details">
+                            <field name="operation_type"/>
+                            <field name="location"
+                                   placeholder="e.g. Hall A, Exhibition Center"/>
+                            <field name="responsible_id"
+                                   options="{'no_create': True}"/>
+                            <field name="company_id"
+                                   groups="base.group_multi_company"/>
+                        </group>
+                        <group string="Schedule &amp; Budget">
+                            <field name="start_date"/>
+                            <field name="end_date"/>
+                            <field name="budget"/>
+                        </group>
+                    </group>
+
+                    <!-- ── NOTEBOOK ─────────────────────────────────────── -->
                     <notebook>
-                        <page string="Overview" name="overview_page">
-                            <group>
-                                <group string="General Information">
-                                    <field name="code" placeholder="e.g. OP-2026-001"/>
-                                    <field name="operation_type"/>
-                                    <field name="location" placeholder="e.g. Hall A, Exhibition Center"/>
-                                    <field name="responsible_id" options="{'no_create': True}"/>
-                                    <field name="company_id" groups="base.group_multi_company"/>
-                                </group>
-                                <group>
-                                    <group string="Dates">
-                                        <field name="start_date"/>
-                                        <field name="end_date"/>
-                                    </group>
-                                    <group string="Financial &amp; Status">
-                                        <field name="budget"/>
-                                        <field name="state" readonly="1" string="Status"/>
-                                    </group>
-                                </group>
-                            </group>
-                        </page>
+
+                        <!-- EMPLOYEES TAB -->
                         <page string="Employees" name="employees_page">
                             <field name="employee_ids">
                                 <list string="Assigned Employees">
                                     <field name="name"/>
                                     <field name="job_id"/>
-                                    <field name="department_id"/>
-                                    <field name="work_email"/>
+                                    <field name="department_id" optional="show"/>
+                                    <field name="work_email" optional="show"/>
                                 </list>
                             </field>
                         </page>
+
+                        <!-- RESOURCES TAB -->
                         <page string="Resources" name="resources_page">
                             <field name="resource_ids">
-                                <list string="Resources" editable="bottom">
+                                <list string="Resources"
+                                      editable="bottom"
+                                      decoration-warning="status == 'deployed'"
+                                      decoration-danger="status == 'damaged'"
+                                      decoration-success="status == 'returned'">
                                     <field name="name"/>
                                     <field name="resource_type"/>
                                     <field name="quantity"/>
-                                    <field name="assigned_employee_id"/>
-                                    <field name="status"/>
+                                    <field name="assigned_employee_id" optional="show"/>
+                                    <field name="status"
+                                           widget="badge"
+                                           decoration-info="status == 'planned'"
+                                           decoration-warning="status == 'deployed'"
+                                           decoration-success="status == 'returned'"
+                                           decoration-danger="status == 'damaged'"/>
                                 </list>
                             </field>
                         </page>
+
+                        <!-- EQUIPMENT TAB -->
                         <page string="Equipment" name="equipment_page">
                             <field name="equipment_ids">
-                                <list string="Equipment" editable="bottom">
+                                <list string="Equipment"
+                                      editable="bottom"
+                                      decoration-warning="status == 'deployed' and not return_date"
+                                      decoration-success="status == 'returned'">
                                     <field name="name"/>
-                                    <field name="employee_id"/>
+                                    <field name="employee_id" optional="show"/>
                                     <field name="deployment_date"/>
                                     <field name="return_date"/>
-                                    <field name="status"/>
+                                    <field name="status"
+                                           widget="badge"
+                                           decoration-info="status == 'planned'"
+                                           decoration-warning="status == 'deployed'"
+                                           decoration-success="status == 'returned'"/>
                                 </list>
                             </field>
                         </page>
+
+                        <!-- EXPENSES TAB -->
                         <page string="Expenses" name="expenses_page">
                             <field name="expense_ids">
                                 <list string="Expenses" editable="bottom">
-                                    <field name="description"/>
                                     <field name="date"/>
-                                    <field name="amount"/>
-                                    <field name="employee_id"/>
+                                    <field name="description"/>
+                                    <field name="amount" sum="Total"/>
+                                    <field name="employee_id" optional="show"/>
                                 </list>
                             </field>
                         </page>
+
+                        <!-- DASHBOARD TAB -->
                         <page string="Dashboard" name="dashboard_page">
-                            <group string="Operation Summary">
-                                <group string="Status &amp; Staff">
-                                    <field name="state" readonly="1" string="Operation Status"/>
-                                    <field name="employee_count" readonly="1"/>
+                            <!-- A. Operational Status -->
+                            <group string="Operational Status">
+                                <group>
+                                    <field name="state"
+                                           readonly="1"
+                                           string="Current Status"
+                                           widget="badge"
+                                           decoration-info="state == 'planned'"
+                                           decoration-warning="state == 'setup' or state == 'closing'"
+                                           decoration-success="state == 'active'"
+                                           decoration-danger="state == 'cancelled'"/>
+                                    <field name="employee_count"
+                                           readonly="1"
+                                           string="Assigned Employees"/>
                                 </group>
-                                <group string="Resources">
-                                    <field name="resource_count" readonly="1"/>
-                                    <field name="planned_resource_count" readonly="1"/>
-                                    <field name="deployed_resource_count" readonly="1"/>
-                                    <field name="returned_resource_count" readonly="1"/>
+                            </group>
+
+                            <!-- B. Resource Utilization -->
+                            <group string="Resource Utilization">
+                                <group string="Summary">
+                                    <field name="resource_count"
+                                           readonly="1"
+                                           string="Total Resources"/>
                                 </group>
-                                <group string="Financials">
-                                    <field name="budget" readonly="1"/>
-                                    <field name="total_expenses" readonly="1"/>
-                                    <field name="remaining_budget" readonly="1"/>
-                                    <field name="budget_utilization" readonly="1"/>
+                                <group string="Breakdown">
+                                    <field name="planned_resource_count"
+                                           readonly="1"
+                                           string="Planned"/>
+                                    <field name="deployed_resource_count"
+                                           readonly="1"
+                                           string="Deployed"/>
+                                    <field name="returned_resource_count"
+                                           readonly="1"
+                                           string="Returned"/>
+                                </group>
+                            </group>
+
+                            <!-- C. Financial Health -->
+                            <group string="Financial Health">
+                                <group>
+                                    <field name="budget"
+                                           readonly="1"
+                                           string="Total Budget"/>
+                                    <field name="total_expenses"
+                                           readonly="1"
+                                           string="Total Expenses"/>
+                                </group>
+                                <group>
+                                    <field name="remaining_budget"
+                                           readonly="1"
+                                           string="Remaining Budget"/>
+                                    <field name="budget_utilization"
+                                           readonly="1"
+                                           string="Budget Utilization (%)"/>
                                 </group>
                             </group>
                         </page>
+
+                        <!-- STATE HISTORY TAB -->
                         <page string="State History" name="history_page">
                             <field name="state_history_ids">
-                                <list string="State Transitions" create="false" delete="false" edit="false">
-                                    <field name="transition_datetime"/>
-                                    <field name="previous_state"/>
-                                    <field name="new_state"/>
-                                    <field name="user_id"/>
+                                <list string="State Transitions"
+                                      create="false"
+                                      delete="false"
+                                      edit="false">
+                                    <field name="transition_datetime"
+                                           string="Date &amp; Time"/>
+                                    <field name="previous_state"
+                                           string="From"
+                                           widget="badge"
+                                           decoration-info="previous_state == 'planned'"
+                                           decoration-warning="previous_state == 'setup' or previous_state == 'closing'"
+                                           decoration-success="previous_state == 'active'"
+                                           decoration-danger="previous_state == 'cancelled'"/>
+                                    <field name="new_state"
+                                           string="To"
+                                           widget="badge"
+                                           decoration-info="new_state == 'planned'"
+                                           decoration-warning="new_state == 'setup' or new_state == 'closing'"
+                                           decoration-success="new_state == 'active'"
+                                           decoration-danger="new_state == 'cancelled'"/>
+                                    <field name="user_id" string="Changed By"/>
                                 </list>
                             </field>
                         </page>
+
+                        <!-- DESCRIPTION TAB -->
                         <page string="Description" name="description_page">
-                            <field name="description" placeholder="Describe the temporary operation details here..."/>
+                            <field name="description"
+                                   placeholder="Describe the temporary operation details, objectives, scope, and any relevant operational notes..."
+                                   nolabel="1"/>
                         </page>
+
                     </notebook>
                 </sheet>
                 <chatter/>
@@ -151,39 +295,68 @@
         </field>
     </record>
 
-    <!-- Search View -->
+    <!-- ===================================================================
+         SEARCH VIEW — Temporary Operations
+    =================================================================== -->
     <record id="view_temporary_operation_search" model="ir.ui.view">
         <field name="name">tbom.temporary.operation.search</field>
         <field name="model">tbom.temporary.operation</field>
         <field name="arch" type="xml">
-            <search string="Search Temporary Operations">
+            <search string="Search Operations">
+                <!-- Search Fields -->
                 <field name="name" string="Operation Name"/>
                 <field name="code" string="Operation Code"/>
                 <field name="location"/>
                 <field name="responsible_id"/>
 
-                <filter string="Planned" name="planned" domain="[('state', '=', 'planned')]"/>
-                <filter string="Setup" name="setup" domain="[('state', '=', 'setup')]"/>
-                <filter string="Active" name="active" domain="[('state', '=', 'active')]"/>
-                <filter string="Closing" name="closing" domain="[('state', '=', 'closing')]"/>
-                <filter string="Closed" name="closed" domain="[('state', '=', 'closed')]"/>
+                <!-- State Filters -->
+                <separator/>
+                <filter string="Planned"   name="planned"   domain="[('state', '=', 'planned')]"/>
+                <filter string="Setup"     name="setup"     domain="[('state', '=', 'setup')]"/>
+                <filter string="Active"    name="active"    domain="[('state', '=', 'active')]"/>
+                <filter string="Closing"   name="closing"   domain="[('state', '=', 'closing')]"/>
+                <filter string="Closed"    name="closed"    domain="[('state', '=', 'closed')]"/>
                 <filter string="Cancelled" name="cancelled" domain="[('state', '=', 'cancelled')]"/>
 
+                <!-- Quick Filters -->
+                <separator/>
+                <filter string="My Operations"
+                        name="my_operations"
+                        domain="[('responsible_id', '=', uid)]"/>
+                <filter string="Active Operations"
+                        name="active_operations"
+                        domain="[('state', 'in', ['setup', 'active'])]"/>
+                <filter string="In Progress or Closing"
+                        name="in_progress_or_closing"
+                        domain="[('state', 'in', ['active', 'closing'])]"/>
+
+                <!-- Group By -->
                 <group>
-                    <filter string="Status" name="group_by_state" context="{'group_by': 'state'}"/>
-                    <filter string="Operation Type" name="group_by_type" context="{'group_by': 'operation_type'}"/>
-                    <filter string="Responsible Manager" name="group_by_responsible" context="{'group_by': 'responsible_id'}"/>
+                    <filter string="Status"
+                            name="group_by_state"
+                            context="{'group_by': 'state'}"/>
+                    <filter string="Operation Type"
+                            name="group_by_type"
+                            context="{'group_by': 'operation_type'}"/>
+                    <filter string="Responsible Manager"
+                            name="group_by_responsible"
+                            context="{'group_by': 'responsible_id'}"/>
                 </group>
             </search>
         </field>
     </record>
 
-    <!-- Kanban View -->
+    <!-- ===================================================================
+         KANBAN VIEW — Operations Board
+    =================================================================== -->
     <record id="view_temporary_operation_kanban" model="ir.ui.view">
         <field name="name">tbom.temporary.operation.kanban</field>
         <field name="model">tbom.temporary.operation</field>
         <field name="arch" type="xml">
-            <kanban default_group_by="state" class="o_kanban_small_column" records_draggable="false">
+            <kanban default_group_by="state"
+                    class="o_kanban_small_column"
+                    records_draggable="false">
+                <!-- Declare all fields used in the card template -->
                 <field name="name"/>
                 <field name="code"/>
                 <field name="operation_type"/>
@@ -195,32 +368,48 @@
                 <field name="state"/>
                 <templates>
                     <t t-name="card">
-                        <div class="oe_kanban_global_click oe_kanban_card">
-                            <div class="oe_kanban_content">
-                                <div class="o_kanban_record_title oe_kanban_details">
-                                    <strong><field name="name"/></strong>
+                        <div class="oe_kanban_global_click">
+
+                            <!-- Operation Name (prominent) -->
+                            <div class="o_kanban_record_title fw-bold">
+                                <field name="name"/>
+                            </div>
+
+                            <!-- Operation Code (muted identifier) -->
+                            <div class="text-muted small mb4">
+                                <field name="code"/>
+                            </div>
+
+                            <!-- Location -->
+                            <div class="mt4">
+                                <i class="fa fa-map-marker fa-fw text-muted"
+                                   role="img" aria-label="Location"/>
+                                <field name="location"/>
+                            </div>
+
+                            <!-- Operation Type -->
+                            <div class="text-muted small">
+                                <field name="operation_type"/>
+                            </div>
+
+                            <!-- Date Range -->
+                            <div class="text-muted small mt4">
+                                <i class="fa fa-calendar fa-fw"
+                                   role="img" aria-label="Dates"/>
+                                <field name="start_date"/> &#8211; <field name="end_date"/>
+                            </div>
+
+                            <!-- Card Footer: Budget + Responsible -->
+                            <div class="o_kanban_record_bottom mt8">
+                                <div class="oe_kanban_bottom_left fw-bold">
+                                    <field name="budget"/>
                                 </div>
-                                <div class="text-muted">
-                                    <span>Code: <field name="code"/></span>
-                                </div>
-                                <div>
-                                    <span>Type: <field name="operation_type"/></span>
-                                </div>
-                                <div>
-                                    <span>Location: <field name="location"/></span>
-                                </div>
-                                <div class="text-muted small">
-                                    <span><field name="start_date"/> to <field name="end_date"/></span>
-                                </div>
-                                <div class="o_kanban_record_bottom mt8">
-                                    <div class="oe_kanban_bottom_left text-info font-weight-bold">
-                                        <span>Budget: <field name="budget"/></span>
-                                    </div>
-                                    <div class="oe_kanban_bottom_right">
-                                        <field name="responsible_id" widget="many2one_avatar_user"/>
-                                    </div>
+                                <div class="oe_kanban_bottom_right">
+                                    <field name="responsible_id"
+                                           widget="many2one_avatar_user"/>
                                 </div>
                             </div>
+
                         </div>
                     </t>
                 </templates>
@@ -228,7 +417,9 @@
         </field>
     </record>
 
-    <!-- Window Action -->
+    <!-- ===================================================================
+         WINDOW ACTION
+    =================================================================== -->
     <record id="action_temporary_operation" model="ir.actions.act_window">
         <field name="name">Temporary Operations</field>
         <field name="type">ir.actions.act_window</field>
@@ -245,9 +436,11 @@
         </field>
     </record>
 
-    <!-- Menu Structure -->
-    <menuitem id="menu_tbom_root" 
-              name="TBOM" 
+    <!-- ===================================================================
+         MENU STRUCTURE
+    =================================================================== -->
+    <menuitem id="menu_tbom_root"
+              name="TBOM"
               sequence="10"/>
 
     <menuitem id="menu_temporary_operation_sub"
@@ -255,10 +448,10 @@
               parent="menu_tbom_root"
               sequence="5"/>
 
-    <menuitem id="menu_temporary_operation" 
-              name="Temporary Operations" 
-              parent="menu_temporary_operation_sub" 
-              action="action_temporary_operation" 
+    <menuitem id="menu_temporary_operation"
+              name="Temporary Operations"
+              parent="menu_temporary_operation_sub"
+              action="action_temporary_operation"
               sequence="10"/>
 
 </odoo>
