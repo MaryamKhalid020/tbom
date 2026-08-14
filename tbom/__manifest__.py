@@ -1,6 +1,6 @@
 {
     'name': 'Temporary Business Operations Manager',
-    'version': '1.0.0',
+    'version': '1.1.0',
     'category': 'Operations',
     'summary': 'Manage temporary, time- and location-bound business operations',
     'description': """
