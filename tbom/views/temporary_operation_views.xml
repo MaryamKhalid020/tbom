@@ -93,6 +93,14 @@
 
                 <!-- ── FORM SHEET ───────────────────────────────────────── -->
                 <sheet>
+                    <!-- Budget Alert Banners -->
+                    <div class="alert alert-warning text-center" role="alert" invisible="budget_utilization &lt; 90 or budget_utilization &gt;= 100 or budget &lt;= 0">
+                        <strong>Approaching Budget Limit:</strong> This operation has utilized <field name="budget_utilization" readonly="1" class="fw-bold"/>% of its allocated budget.
+                    </div>
+                    <div class="alert alert-danger text-center" role="alert" invisible="budget_utilization &lt; 100 or budget &lt;= 0">
+                        <strong>Over Budget:</strong> This operation is over budget! Utilization is at <field name="budget_utilization" readonly="1" class="fw-bold"/>%.
+                    </div>
+
 
                     <!-- Operation Identity Block -->
                     <div class="oe_title">
@@ -248,6 +256,7 @@
                                            string="Remaining Budget"/>
                                     <field name="budget_utilization"
                                            readonly="1"
+                                           widget="progressbar"
                                            string="Budget Utilization (%)"/>
                                 </group>
                             </group>
@@ -292,6 +301,60 @@
                 </sheet>
                 <chatter/>
             </form>
+        </field>
+    </record>
+
+    <!-- ===================================================================
+         CALENDAR VIEW — Operation Planning
+    =================================================================== -->
+    <record id="view_temporary_operation_calendar" model="ir.ui.view">
+        <field name="name">tbom.temporary.operation.calendar</field>
+        <field name="model">tbom.temporary.operation</field>
+        <field name="arch" type="xml">
+            <calendar string="Operation Planning" 
+                      date_start="start_date" 
+                      date_stop="end_date" 
+                      color="state"
+                      quick_create="false">
+                <field name="name"/>
+                <field name="responsible_id"/>
+                <field name="state"/>
+            </calendar>
+        </field>
+    </record>
+
+    <!-- ===================================================================
+         GRAPH VIEW — Operations Analysis
+    =================================================================== -->
+    <record id="view_temporary_operation_graph" model="ir.ui.view">
+        <field name="name">tbom.temporary.operation.graph</field>
+        <field name="model">tbom.temporary.operation</field>
+        <field name="arch" type="xml">
+            <graph string="Operations Analysis" type="bar" sample="1">
+                <field name="state"/>
+                <field name="budget" type="measure"/>
+                <field name="total_expenses" type="measure"/>
+                <field name="remaining_budget" type="measure"/>
+                <field name="budget_utilization" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- ===================================================================
+         PIVOT VIEW — Operations Analysis
+    =================================================================== -->
+    <record id="view_temporary_operation_pivot" model="ir.ui.view">
+        <field name="name">tbom.temporary.operation.pivot</field>
+        <field name="model">tbom.temporary.operation</field>
+        <field name="arch" type="xml">
+            <pivot string="Operations Analysis" sample="1">
+                <field name="state" type="row"/>
+                <field name="operation_type" type="col"/>
+                <field name="budget" type="measure"/>
+                <field name="total_expenses" type="measure"/>
+                <field name="remaining_budget" type="measure"/>
+                <field name="budget_utilization" type="measure"/>
+            </pivot>
         </field>
     </record>
 
@@ -424,7 +487,7 @@
         <field name="name">Temporary Operations</field>
         <field name="type">ir.actions.act_window</field>
         <field name="res_model">tbom.temporary.operation</field>
-        <field name="view_mode">kanban,list,form</field>
+        <field name="view_mode">kanban,list,form,calendar,graph,pivot</field>
         <field name="search_view_id" ref="view_temporary_operation_search"/>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">

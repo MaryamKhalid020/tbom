@@ -216,6 +216,40 @@ class TemporaryOperation(models.Model):
                 elif new_state == 'closing':
                     if old_state != 'active':
                         raise ValidationError('Start Closing is only allowed in Active state.')
+
+                    # Create a Closing Activity
+                    activity_type = self.env.ref('mail.mail_activity_data_todo', raise_if_not_found=False)
+                    activity_type_id = activity_type.id if activity_type else False
+                    if not activity_type_id:
+                        activity_type_id = self.env['mail.activity.type'].search([('category', '=', 'default')], limit=1).id
+
+                    model_id = self.env['ir.model'].search([('model', '=', 'tbom.temporary.operation')], limit=1).id
+
+                    existing_activity = self.env['mail.activity'].search([
+                        ('res_id', '=', record.id),
+                        ('res_model_id', '=', model_id),
+                        ('summary', '=', 'Operation Closing Review Required'),
+                        ('user_id', '=', record.responsible_id.id or self.env.user.id),
+                    ], limit=1)
+
+                    if not existing_activity:
+                        self.env['mail.activity'].create({
+                            'activity_type_id': activity_type_id,
+                            'summary': 'Operation Closing Review Required',
+                            'note': '<p>A closing review is required. Please check the following:</p>'
+                                    '<ul>'
+                                    '<li>Verify all resources have been returned</li>'
+                                    '<li>Verify equipment has been returned</li>'
+                                    '<li>Review outstanding expenses</li>'
+                                    '<li>Review budget utilization</li>'
+                                    '<li>Confirm operation dates</li>'
+                                    '<li>Prepare/review final report</li>'
+                                    '</ul>',
+                            'res_id': record.id,
+                            'res_model_id': model_id,
+                            'user_id': record.responsible_id.id or self.env.user.id,
+                            'date_deadline': fields.Date.context_today(self),
+                        })
                 elif new_state == 'closed':
                     if old_state != 'closing':
                         raise ValidationError('Close Operation is only allowed in Closing state.')

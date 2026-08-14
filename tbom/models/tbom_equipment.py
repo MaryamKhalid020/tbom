@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from odoo import models, fields, api
+from odoo.exceptions import ValidationError
 
 class TbomEquipment(models.Model):
     _name = 'tbom.equipment'
@@ -38,3 +39,28 @@ class TbomEquipment(models.Model):
         default='planned',
         required=True
     )
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if vals.get('operation_id'):
+                operation = self.env['tbom.temporary.operation'].browse(vals['operation_id'])
+                if operation.state in ('closed', 'cancelled'):
+                    raise ValidationError('Cannot add equipment to a closed or cancelled operation.')
+        return super(TbomEquipment, self).create(vals_list)
+
+    def write(self, vals):
+        for record in self:
+            if record.operation_id.state in ('closed', 'cancelled'):
+                raise ValidationError('Cannot edit equipment of a closed or cancelled operation.')
+            if 'operation_id' in vals:
+                new_op = self.env['tbom.temporary.operation'].browse(vals['operation_id'])
+                if new_op.state in ('closed', 'cancelled'):
+                    raise ValidationError('Cannot move equipment to a closed or cancelled operation.')
+        return super(TbomEquipment, self).write(vals)
+
+    def unlink(self):
+        for record in self:
+            if record.operation_id.state in ('closed', 'cancelled'):
+                raise ValidationError('Cannot delete equipment of a closed or cancelled operation.')
+        return super(TbomEquipment, self).unlink()

@@ -37,3 +37,28 @@ class TbomExpense(models.Model):
         for record in self:
             if record.amount < 0:
                 raise ValidationError('Expense amount must not be negative.')
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if vals.get('operation_id'):
+                operation = self.env['tbom.temporary.operation'].browse(vals['operation_id'])
+                if operation.state in ('closed', 'cancelled'):
+                    raise ValidationError('Cannot add expenses to a closed or cancelled operation.')
+        return super(TbomExpense, self).create(vals_list)
+
+    def write(self, vals):
+        for record in self:
+            if record.operation_id.state in ('closed', 'cancelled'):
+                raise ValidationError('Cannot edit expenses of a closed or cancelled operation.')
+            if 'operation_id' in vals:
+                new_op = self.env['tbom.temporary.operation'].browse(vals['operation_id'])
+                if new_op.state in ('closed', 'cancelled'):
+                    raise ValidationError('Cannot move expenses to a closed or cancelled operation.')
+        return super(TbomExpense, self).write(vals)
+
+    def unlink(self):
+        for record in self:
+            if record.operation_id.state in ('closed', 'cancelled'):
+                raise ValidationError('Cannot delete expenses of a closed or cancelled operation.')
+        return super(TbomExpense, self).unlink()
