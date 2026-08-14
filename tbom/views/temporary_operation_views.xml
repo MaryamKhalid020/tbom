@@ -93,6 +93,23 @@
 
                 <!-- ── FORM SHEET ───────────────────────────────────────── -->
                 <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_resources" type="object" class="oe_stat_button" icon="fa-cubes">
+                            <field name="resource_count" widget="statinfo" string="Resources"/>
+                        </button>
+                        <button name="action_view_equipment" type="object" class="oe_stat_button" icon="fa-wrench">
+                            <field name="equipment_count" widget="statinfo" string="Equipment"/>
+                        </button>
+                        <button name="action_view_expenses" type="object" class="oe_stat_button" icon="fa-money">
+                            <field name="expense_count" widget="statinfo" string="Expenses"/>
+                        </button>
+                        <button name="action_view_employees" type="object" class="oe_stat_button" icon="fa-users">
+                            <field name="employee_count" widget="statinfo" string="Employees"/>
+                        </button>
+                        <button name="action_view_state_history" type="object" class="oe_stat_button" icon="fa-history">
+                            <field name="state_history_count" widget="statinfo" string="State History"/>
+                        </button>
+                    </div>
                     <!-- Budget Alert Banners -->
                     <div class="alert alert-warning text-center" role="alert" invisible="budget_utilization &lt; 90 or budget_utilization &gt;= 100 or budget &lt;= 0">
                         <strong>Approaching Budget Limit:</strong> This operation has utilized <field name="budget_utilization" readonly="1" class="fw-bold"/>% of its allocated budget.
@@ -129,6 +146,39 @@
                             <field name="start_date"/>
                             <field name="end_date"/>
                             <field name="budget"/>
+                        </group>
+                    </group>
+
+                    <!-- Operation Health & Risk Control Center -->
+                    <group string="Operation Health &amp; Risk Control Center">
+                        <group string="Timeline Details">
+                            <field name="duration" string="Total Duration (Days)" readonly="1"/>
+                            <field name="days_elapsed" string="Days Elapsed" readonly="1"/>
+                            <field name="days_remaining" string="Days Remaining" readonly="1"/>
+                            <field name="employee_count" string="Assigned Employees" readonly="1"/>
+                        </group>
+                        <group string="Resource utilization &amp; Financials">
+                            <field name="resource_count" string="Total Resources" readonly="1"/>
+                            <field name="deployed_resource_count" string="Deployed Resources" readonly="1"/>
+                            <field name="equipment_count" string="Total Equipment" readonly="1"/>
+                            <field name="deployed_equipment_count" string="Deployed Equipment" readonly="1"/>
+                            <field name="total_expenses" string="Total Expenses" readonly="1"/>
+                            <field name="remaining_budget" string="Remaining Budget" readonly="1"/>
+                            <field name="budget_utilization" widget="progressbar" string="Budget Utilization" readonly="1"/>
+                        </group>
+                        <group string="Critical Attention &amp; Risk Levels">
+                            <field name="risk_level" widget="badge" 
+                                   decoration-success="risk_level == 'normal'" 
+                                   decoration-warning="risk_level == 'warning'" 
+                                   decoration-danger="risk_level == 'critical'"
+                                   string="Risk Level" readonly="1"/>
+                            <field name="is_overdue" string="Operation Overdue" readonly="1" invisible="not is_overdue" class="text-danger fw-bold"/>
+                            <field name="is_ending_soon" string="Ending Soon" readonly="1" invisible="not is_ending_soon" class="text-warning fw-bold"/>
+                            <field name="is_over_budget" string="Over Budget Warning" readonly="1" invisible="not is_over_budget" class="text-danger fw-bold"/>
+                            <field name="is_near_budget" string="Near Budget Limit" readonly="1" invisible="not is_near_budget" class="text-warning fw-bold"/>
+                            <field name="has_outstanding_resources_closing" string="Resources Outstanding in Closing" readonly="1" invisible="not has_outstanding_resources_closing" class="text-warning fw-bold"/>
+                            <field name="has_outstanding_equipment_closing" string="Equipment Outstanding in Closing" readonly="1" invisible="not has_outstanding_equipment_closing" class="text-warning fw-bold"/>
+                            <field name="missing_closing_info" string="Missing Required Closing Data" readonly="1" invisible="not missing_closing_info" class="text-danger fw-bold"/>
                         </group>
                     </group>
 
@@ -290,6 +340,25 @@
                             </field>
                         </page>
 
+                        <!-- CLOSING CHECKLIST TAB -->
+                        <page string="Closing Checklist" name="closing_checklist_page" invisible="state not in ('closing', 'closed')">
+                            <group string="Ready for Closure Checklist">
+                                <field name="checklist_resources_returned" widget="boolean" string="All Resources Returned" readonly="1"/>
+                                <field name="checklist_equipment_returned" widget="boolean" string="All Equipment Returned" readonly="1"/>
+                                <field name="checklist_expenses_recorded" widget="boolean" string="Expenses Recorded" readonly="1"/>
+                                <field name="checklist_no_outstanding" widget="boolean" string="No Outstanding Operational Items" readonly="1"/>
+                                <field name="checklist_dates_available" widget="boolean" string="Required Dates Available" readonly="1"/>
+                                <field name="checklist_financials_ok" widget="boolean" string="Final Financials OK" readonly="1"/>
+                                <field name="checklist_ready_for_close" widget="boolean" string="Operation Ready for Closure" readonly="1"/>
+                            </group>
+                            <div class="alert alert-info text-center" role="alert" invisible="checklist_ready_for_close">
+                                <strong>Closure Pending:</strong> Please ensure all checklist items are ticked before closing the operation. Deployed resources and equipment must be returned, and start/end dates must be valid.
+                            </div>
+                            <div class="alert alert-success text-center" role="alert" invisible="not checklist_ready_for_close">
+                                <strong>Ready to Close:</strong> All closure requirements are satisfied. The operation is ready to be closed.
+                            </div>
+                        </page>
+
                         <!-- DESCRIPTION TAB -->
                         <page string="Description" name="description_page">
                             <field name="description"
@@ -388,10 +457,28 @@
                         domain="[('responsible_id', '=', uid)]"/>
                 <filter string="Active Operations"
                         name="active_operations"
-                        domain="[('state', 'in', ['setup', 'active'])]"/>
-                <filter string="In Progress or Closing"
-                        name="in_progress_or_closing"
-                        domain="[('state', 'in', ['active', 'closing'])]"/>
+                        domain="[('state', '=', 'active')]"/>
+                <filter string="Operations in Closing"
+                        name="closing_operations"
+                        domain="[('state', '=', 'closing')]"/>
+                <filter string="Over Budget"
+                        name="over_budget"
+                        domain="[('is_over_budget', '=', True)]"/>
+                <filter string="Near Budget Limit"
+                        name="near_budget"
+                        domain="[('is_near_budget', '=', True)]"/>
+                <filter string="Ending Soon"
+                        name="ending_soon"
+                        domain="[('is_ending_soon', '=', True)]"/>
+                <filter string="Overdue Operations"
+                        name="overdue_operations"
+                        domain="[('is_overdue', '=', True)]"/>
+                <filter string="With Outstanding Resources"
+                        name="outstanding_resources"
+                        domain="[('deployed_resource_count', '>', 0)]"/>
+                <filter string="With Outstanding Equipment"
+                        name="outstanding_equipment"
+                        domain="[('deployed_equipment_count', '>', 0)]"/>
 
                 <!-- Group By -->
                 <group>
@@ -404,6 +491,12 @@
                     <filter string="Responsible Manager"
                             name="group_by_responsible"
                             context="{'group_by': 'responsible_id'}"/>
+                    <filter string="Location"
+                            name="group_by_location"
+                            context="{'group_by': 'location'}"/>
+                    <filter string="Company"
+                            name="group_by_company"
+                            context="{'group_by': 'company_id'}"/>
                 </group>
             </search>
         </field>
@@ -497,6 +590,20 @@
                 Define temporary, time- and location-bound business operations.
             </p>
         </field>
+    </record>
+
+    <!-- Background Activity Reminder Cron -->
+    <record id="cron_tbom_operation_reminders" model="ir.cron">
+        <field name="name">TBOM Operation Reminders Scheduler</field>
+        <field name="model_id" ref="model_tbom_temporary_operation"/>
+        <field name="state">code</field>
+        <field name="code">model.cron_operation_reminders()</field>
+        <field name="user_id" ref="base.user_root"/>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="numbercall">-1</field>
+        <field name="doall" eval="False"/>
+        <field name="active" eval="True"/>
     </record>
 
     <!-- ===================================================================

@@ -12,6 +12,29 @@ class TemporaryOperation(models.Model):
         ('code_unique', 'unique(code)', 'The Operation Code must be unique.'),
     ]
 
+    @api.model
+    def _default_code(self):
+        # Generate a unique code like OP-YYYY-XXXX
+        today = fields.Date.today()
+        year = today.year
+        # Find the last code for the current year
+        last_op = self.search([('code', 'like', f'OP-{year}-%')], order='code desc', limit=1)
+        if last_op:
+            try:
+                # extract sequence number
+                seq = int(last_op.code.split('-')[-1]) + 1
+            except ValueError:
+                seq = 1
+        else:
+            seq = 1
+        
+        # Ensure it is unique
+        while True:
+            code = f"OP-{year}-{seq:04d}"
+            if self.search_count([('code', '=', code)]) == 0:
+                return code
+            seq += 1
+
     name = fields.Char(
         string='Operation Name',
         required=True,
@@ -21,7 +44,8 @@ class TemporaryOperation(models.Model):
     code = fields.Char(
         string='Operation Code',
         required=True,
-        tracking=True
+        tracking=True,
+        default=_default_code
     )
 
     operation_type = fields.Selection(
@@ -164,6 +188,102 @@ class TemporaryOperation(models.Model):
         compute='_compute_dashboard_stats'
     )
 
+    duration = fields.Integer(
+        string='Total Duration (Days)',
+        compute='_compute_operation_duration'
+    )
+    days_elapsed = fields.Integer(
+        string='Days Elapsed',
+        compute='_compute_operation_duration'
+    )
+    days_remaining = fields.Integer(
+        string='Days Remaining',
+        compute='_compute_operation_duration'
+    )
+    equipment_count = fields.Integer(
+        string='Equipment Count',
+        compute='_compute_operation_counts'
+    )
+    deployed_equipment_count = fields.Integer(
+        string='Deployed Equipment Count',
+        compute='_compute_operation_counts'
+    )
+    expense_count = fields.Integer(
+        string='Expense Count',
+        compute='_compute_operation_counts'
+    )
+    state_history_count = fields.Integer(
+        string='State History Count',
+        compute='_compute_operation_counts'
+    )
+
+    is_over_budget = fields.Boolean(
+        string='Over Budget',
+        compute='_compute_risk_indicators'
+    )
+    is_near_budget = fields.Boolean(
+        string='Near Budget Limit',
+        compute='_compute_risk_indicators'
+    )
+    is_ending_soon = fields.Boolean(
+        string='Ending Soon',
+        compute='_compute_risk_indicators'
+    )
+    is_overdue = fields.Boolean(
+        string='Overdue Operation',
+        compute='_compute_risk_indicators'
+    )
+    has_outstanding_resources_closing = fields.Boolean(
+        string='Outstanding Resources in Closing',
+        compute='_compute_risk_indicators'
+    )
+    has_outstanding_equipment_closing = fields.Boolean(
+        string='Outstanding Equipment in Closing',
+        compute='_compute_risk_indicators'
+    )
+    missing_closing_info = fields.Boolean(
+        string='Missing Closing Info',
+        compute='_compute_risk_indicators'
+    )
+    risk_level = fields.Selection(
+        [
+            ('normal', 'Normal'),
+            ('warning', 'Warning'),
+            ('critical', 'Critical')
+        ],
+        string='Operation Risk Level',
+        compute='_compute_risk_indicators'
+    )
+
+    checklist_resources_returned = fields.Boolean(
+        string='All Resources Returned',
+        compute='_compute_closing_checklist'
+    )
+    checklist_equipment_returned = fields.Boolean(
+        string='All Equipment Returned',
+        compute='_compute_closing_checklist'
+    )
+    checklist_expenses_recorded = fields.Boolean(
+        string='Expenses Recorded',
+        compute='_compute_closing_checklist'
+    )
+    checklist_no_outstanding = fields.Boolean(
+        string='No Outstanding Operational Items',
+        compute='_compute_closing_checklist'
+    )
+    checklist_dates_available = fields.Boolean(
+        string='Required Dates Available',
+        compute='_compute_closing_checklist'
+    )
+    checklist_financials_ok = fields.Boolean(
+        string='Final Financials OK',
+        compute='_compute_closing_checklist'
+    )
+    checklist_ready_for_close = fields.Boolean(
+        string='Operation Ready for Closure',
+        compute='_compute_closing_checklist'
+    )
+
     @api.depends('employee_ids', 'resource_ids', 'budget', 'expense_ids')
     def _compute_dashboard_stats(self):
         for record in self:
@@ -178,6 +298,150 @@ class TemporaryOperation(models.Model):
                 record.budget_utilization = (record.total_expenses / record.budget) * 100
             else:
                 record.budget_utilization = 0.0
+
+    @api.depends('start_date', 'end_date', 'state')
+    def _compute_operation_duration(self):
+        today = fields.Date.today()
+        for record in self:
+            if record.start_date and record.end_date:
+                record.duration = (record.end_date - record.start_date).days + 1
+                
+                # days elapsed
+                if today < record.start_date:
+                    record.days_elapsed = 0
+                elif today > record.end_date:
+                    record.days_elapsed = record.duration
+                else:
+                    record.days_elapsed = (today - record.start_date).days + 1
+                
+                # days remaining
+                if today > record.end_date:
+                    record.days_remaining = 0
+                elif today < record.start_date:
+                    record.days_remaining = record.duration
+                else:
+                    record.days_remaining = (record.end_date - today).days
+            else:
+                record.duration = 0
+                record.days_elapsed = 0
+                record.days_remaining = 0
+
+    @api.depends('equipment_ids', 'equipment_ids.status', 'expense_ids', 'state_history_ids')
+    def _compute_operation_counts(self):
+        for record in self:
+            record.equipment_count = len(record.equipment_ids)
+            record.deployed_equipment_count = len(record.equipment_ids.filtered(lambda e: e.status == 'deployed'))
+            record.expense_count = len(record.expense_ids)
+            record.state_history_count = len(record.state_history_ids)
+
+    @api.depends('budget', 'total_expenses', 'budget_utilization', 'start_date', 'end_date', 'state', 'deployed_resource_count', 'deployed_equipment_count', 'name', 'code')
+    def _compute_risk_indicators(self):
+        today = fields.Date.today()
+        for record in self:
+            # budget risks
+            record.is_over_budget = record.budget > 0 and record.budget_utilization >= 100.0
+            record.is_near_budget = record.budget > 0 and 90.0 <= record.budget_utilization < 100.0
+            
+            # timing risks
+            record.is_ending_soon = False
+            if record.state in ('planned', 'setup', 'active') and record.end_date:
+                days_left = (record.end_date - today).days
+                record.is_ending_soon = 0 <= days_left <= 3
+                
+            record.is_overdue = False
+            if record.state not in ('closed', 'cancelled') and record.end_date:
+                record.is_overdue = today > record.end_date
+                
+            # closing outstanding checks
+            record.has_outstanding_resources_closing = record.state == 'closing' and record.deployed_resource_count > 0
+            record.has_outstanding_equipment_closing = record.state == 'closing' and record.deployed_equipment_count > 0
+            
+            # missing info check
+            record.missing_closing_info = record.state == 'closing' and (
+                not record.name or not record.code or not record.start_date or not record.end_date
+            )
+            
+            # calculate risk level
+            if record.is_over_budget or record.is_overdue or record.missing_closing_info:
+                record.risk_level = 'critical'
+            elif record.is_near_budget or record.is_ending_soon or record.has_outstanding_resources_closing or record.has_outstanding_equipment_closing:
+                record.risk_level = 'warning'
+            else:
+                record.risk_level = 'normal'
+
+    @api.depends('deployed_resource_count', 'deployed_equipment_count', 'expense_ids', 'start_date', 'end_date', 'budget', 'total_expenses')
+    def _compute_closing_checklist(self):
+        for record in self:
+            record.checklist_resources_returned = record.deployed_resource_count == 0
+            record.checklist_equipment_returned = record.deployed_equipment_count == 0
+            record.checklist_expenses_recorded = len(record.expense_ids) > 0
+            record.checklist_no_outstanding = record.deployed_resource_count == 0 and record.deployed_equipment_count == 0
+            record.checklist_dates_available = bool(
+                record.start_date and 
+                record.end_date and 
+                record.end_date >= record.start_date
+            )
+            record.checklist_financials_ok = record.budget >= 0 and record.total_expenses >= 0
+            record.checklist_ready_for_close = (
+                record.checklist_resources_returned and 
+                record.checklist_equipment_returned and 
+                record.checklist_dates_available and 
+                record.checklist_financials_ok
+            )
+
+    def action_view_resources(self):
+        self.ensure_one()
+        return {
+            'name': 'Resources',
+            'type': 'ir.actions.act_window',
+            'res_model': 'tbom.resource',
+            'view_mode': 'list,form',
+            'domain': [('operation_id', '=', self.id)],
+            'context': {'default_operation_id': self.id},
+        }
+
+    def action_view_equipment(self):
+        self.ensure_one()
+        return {
+            'name': 'Equipment',
+            'type': 'ir.actions.act_window',
+            'res_model': 'tbom.equipment',
+            'view_mode': 'list,form',
+            'domain': [('operation_id', '=', self.id)],
+            'context': {'default_operation_id': self.id},
+        }
+
+    def action_view_expenses(self):
+        self.ensure_one()
+        return {
+            'name': 'Expenses',
+            'type': 'ir.actions.act_window',
+            'res_model': 'tbom.expense',
+            'view_mode': 'list,form',
+            'domain': [('operation_id', '=', self.id)],
+            'context': {'default_operation_id': self.id},
+        }
+
+    def action_view_employees(self):
+        self.ensure_one()
+        return {
+            'name': 'Assigned Employees',
+            'type': 'ir.actions.act_window',
+            'res_model': 'hr.employee',
+            'view_mode': 'list,form',
+            'domain': [('id', 'in', self.employee_ids.ids)],
+        }
+
+    def action_view_state_history(self):
+        self.ensure_one()
+        return {
+            'name': 'State History',
+            'type': 'ir.actions.act_window',
+            'res_model': 'tbom.operation.state.history',
+            'view_mode': 'list,form',
+            'domain': [('operation_id', '=', self.id)],
+            'context': {'default_operation_id': self.id, 'create': False, 'delete': False, 'edit': False},
+        }
 
     # Validations
     @api.constrains('start_date', 'end_date')
@@ -199,8 +463,14 @@ class TemporaryOperation(models.Model):
 
     def write(self, vals):
         for record in self:
-            if record.state in ('closed', 'cancelled') and not any(k in vals for k in ['state']):
-                raise ValidationError('Closed or cancelled operations cannot be edited.')
+            if record.state in ('closed', 'cancelled'):
+                locked_fields = {
+                    'name', 'code', 'operation_type', 'location', 
+                    'start_date', 'end_date', 'budget', 'responsible_id', 
+                    'employee_ids', 'description'
+                }
+                if any(k in locked_fields for k in vals):
+                    raise ValidationError('Closed or cancelled operations cannot be edited.')
             if 'state' in vals and vals['state'] != record.state:
                 self._check_manager_role()
                 old_state = record.state
@@ -210,6 +480,23 @@ class TemporaryOperation(models.Model):
                 if new_state == 'setup':
                     if old_state != 'planned':
                         raise ValidationError('Start Setup is only allowed in Planned state.')
+                    
+                    # Extract validation fields from vals, falling back to record values
+                    name = vals.get('name', record.name)
+                    code = vals.get('code', record.code)
+                    responsible_id = vals.get('responsible_id', record.responsible_id.id if record.responsible_id else False)
+                    operation_type = vals.get('operation_type', record.operation_type)
+                    location = vals.get('location', record.location)
+                    start_date = fields.Date.to_date(vals.get('start_date') or record.start_date)
+                    end_date = fields.Date.to_date(vals.get('end_date') or record.end_date)
+                    budget = vals.get('budget', record.budget)
+                    
+                    if not name or not code or not responsible_id or not operation_type or not location or not start_date or not end_date:
+                        raise ValidationError("Required operation details (Name, Code, Manager, Type, Location, Start/End Dates) are missing for Setup transition.")
+                    if end_date < start_date:
+                        raise ValidationError("End Date cannot be earlier than Start Date.")
+                    if budget < 0:
+                        raise ValidationError("Budget cannot be negative.")
                 elif new_state == 'active':
                     if old_state != 'setup':
                         raise ValidationError('Start Operation is only allowed in Setup state.')
@@ -257,8 +544,8 @@ class TemporaryOperation(models.Model):
                     # Extract validation fields from vals, falling back to record values
                     name = vals.get('name', record.name)
                     code = vals.get('code', record.code)
-                    start_date = vals.get('start_date', record.start_date)
-                    end_date = vals.get('end_date', record.end_date)
+                    start_date = fields.Date.to_date(vals.get('start_date') or record.start_date)
+                    end_date = fields.Date.to_date(vals.get('end_date') or record.end_date)
                     
                     if not name or not code or not start_date or not end_date:
                         raise ValidationError("Required operation details are missing.")
@@ -297,6 +584,12 @@ class TemporaryOperation(models.Model):
         for record in self:
             if record.state != 'planned':
                 raise ValidationError('Start Setup is only allowed in Planned state.')
+            if not record.name or not record.code or not record.responsible_id or not record.operation_type or not record.location or not record.start_date or not record.end_date:
+                raise ValidationError("Required operation details (Name, Code, Manager, Type, Location, Start/End Dates) are missing for Setup transition.")
+            if record.end_date < record.start_date:
+                raise ValidationError("End Date cannot be earlier than Start Date.")
+            if record.budget < 0:
+                raise ValidationError("Budget cannot be negative.")
             record.state = 'setup'
         return True
 
@@ -352,3 +645,95 @@ class TemporaryOperation(models.Model):
                 raise ValidationError('Reset to Planned is only allowed for Cancelled operations.')
             record.state = 'planned'
         return True
+
+    @api.returns('self', lambda value: value.id)
+    def copy(self, default=None):
+        default = dict(default or {})
+        
+        # Suffix the code until it is unique in the database
+        code = self.code or ''
+        new_code = f"{code}_copy"
+        while self.env['tbom.temporary.operation'].search_count([('code', '=', new_code)]) > 0:
+            new_code = f"{new_code}_copy"
+            
+        default.update({
+            'code': new_code,
+            'state': 'planned',
+            'expense_ids': False,
+            'state_history_ids': False,
+            'resource_ids': False,
+            'equipment_ids': False,
+        })
+        copied_operation = super(TemporaryOperation, self).copy(default)
+        
+        # Copy resources and reset status to planned
+        for resource in self.resource_ids:
+            resource.copy({
+                'operation_id': copied_operation.id,
+                'status': 'planned',
+            })
+            
+        # Copy equipment and reset status to planned
+        for equip in self.equipment_ids:
+            equip.copy({
+                'operation_id': copied_operation.id,
+                'status': 'planned',
+                'return_date': False,
+            })
+            
+        return copied_operation
+
+    @api.model
+    def cron_operation_reminders(self):
+        from datetime import timedelta
+        today = fields.Date.today()
+        # Active operations approaching end date (exactly in 3 days)
+        approaching_date = today + timedelta(days=3)
+        ops_approaching = self.search([
+            ('state', 'in', ('setup', 'active')),
+            ('end_date', '=', approaching_date),
+            ('responsible_id', '!=', False)
+        ])
+        
+        model_id = self.env['ir.model'].search([('model', '=', 'tbom.temporary.operation')], limit=1).id
+        
+        for op in ops_approaching:
+            existing = self.env['mail.activity'].search([
+                ('res_id', '=', op.id),
+                ('res_model_id', '=', model_id),
+                ('summary', '=', 'Operation Approaching End Date'),
+            ], limit=1)
+            if not existing:
+                self.env['mail.activity'].create({
+                    'activity_type_id': self.env.ref('mail.mail_activity_data_todo', raise_if_not_found=False).id or self.env['mail.activity.type'].search([('category', '=', 'default')], limit=1).id,
+                    'summary': 'Operation Approaching End Date',
+                    'note': f'<p>Operation {op.name} is approaching its end date ({op.end_date}). Please review outstanding items.</p>',
+                    'res_id': op.id,
+                    'res_model_id': model_id,
+                    'user_id': op.responsible_id.id,
+                    'date_deadline': op.end_date,
+                })
+                
+        # Overdue active operations (past end date)
+        ops_overdue = self.search([
+            ('state', 'in', ('setup', 'active')),
+            ('end_date', '<', today),
+            ('responsible_id', '!=', False)
+        ])
+        
+        for op in ops_overdue:
+            existing = self.env['mail.activity'].search([
+                ('res_id', '=', op.id),
+                ('res_model_id', '=', model_id),
+                ('summary', '=', 'Overdue Operation Warning'),
+            ], limit=1)
+            if not existing:
+                self.env['mail.activity'].create({
+                    'activity_type_id': self.env.ref('mail.mail_activity_data_todo', raise_if_not_found=False).id or self.env['mail.activity.type'].search([('category', '=', 'default')], limit=1).id,
+                    'summary': 'Overdue Operation Warning',
+                    'note': f'<p>Operation {op.name} is overdue! Its end date was {op.end_date} but it remains active. Please update or close it.</p>',
+                    'res_id': op.id,
+                    'res_model_id': model_id,
+                    'user_id': op.responsible_id.id,
+                    'date_deadline': today,
+                })

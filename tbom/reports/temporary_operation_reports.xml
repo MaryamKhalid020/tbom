@@ -153,6 +153,28 @@
                             </tbody>
                         </table>
 
+                        <h4 style="border-bottom: 1px solid #ddd; padding-bottom: 5px; margin-top: 20px;">State Transition History</h4>
+                        <table class="table table-sm table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Date &amp; Time</th>
+                                    <th>Previous State</th>
+                                    <th>New State</th>
+                                    <th>Changed By</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="o.state_history_ids" t-as="hist">
+                                    <tr>
+                                        <td><t t-out="hist.transition_datetime"/></td>
+                                        <td><t t-out="hist.previous_state"/></td>
+                                        <td><t t-out="hist.new_state"/></td>
+                                        <td><t t-out="hist.user_id.name"/></td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+
                         <div class="oe_structure"/>
                     </div>
                 </t>
