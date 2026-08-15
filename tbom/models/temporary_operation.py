@@ -713,7 +713,7 @@ class TemporaryOperation(models.Model):
         return copied_operation
 
     @api.model
-    def cron_operation_reminders(self):
+    def cron_operation_reminders(self, *args, **kwargs):
         from datetime import timedelta
         today = fields.Date.today()
         # Active operations approaching end date (exactly in 3 days)
@@ -766,3 +766,4 @@ class TemporaryOperation(models.Model):
                     'user_id': op.responsible_id.id,
                     'date_deadline': today,
                 })
+        return True
