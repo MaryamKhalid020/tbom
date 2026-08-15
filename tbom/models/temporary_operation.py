@@ -150,100 +150,122 @@ class TemporaryOperation(models.Model):
 
     employee_count = fields.Integer(
         string='Employee Count',
-        compute='_compute_dashboard_stats'
+        compute='_compute_dashboard_stats',
+        store=True
     )
 
     resource_count = fields.Integer(
         string='Total Resources',
-        compute='_compute_dashboard_stats'
+        compute='_compute_dashboard_stats',
+        store=True
     )
 
     planned_resource_count = fields.Integer(
         string='Planned Resources',
-        compute='_compute_dashboard_stats'
+        compute='_compute_dashboard_stats',
+        store=True
     )
 
     deployed_resource_count = fields.Integer(
         string='Deployed Resources',
-        compute='_compute_dashboard_stats'
+        compute='_compute_dashboard_stats',
+        store=True
     )
 
     returned_resource_count = fields.Integer(
         string='Returned Resources',
-        compute='_compute_dashboard_stats'
+        compute='_compute_dashboard_stats',
+        store=True
     )
 
     total_expenses = fields.Float(
         string='Total Expenses',
-        compute='_compute_dashboard_stats'
+        compute='_compute_dashboard_stats',
+        store=True
     )
 
     remaining_budget = fields.Float(
         string='Remaining Budget',
-        compute='_compute_dashboard_stats'
+        compute='_compute_dashboard_stats',
+        store=True
     )
 
     budget_utilization = fields.Float(
         string='Budget Utilization (%)',
-        compute='_compute_dashboard_stats'
+        compute='_compute_dashboard_stats',
+        store=True
     )
 
     duration = fields.Integer(
         string='Total Duration (Days)',
-        compute='_compute_operation_duration'
+        compute='_compute_operation_duration',
+        store=True
     )
     days_elapsed = fields.Integer(
         string='Days Elapsed',
-        compute='_compute_operation_duration'
+        compute='_compute_operation_duration',
+        store=True
     )
     days_remaining = fields.Integer(
         string='Days Remaining',
-        compute='_compute_operation_duration'
+        compute='_compute_operation_duration',
+        store=True
     )
     equipment_count = fields.Integer(
         string='Equipment Count',
-        compute='_compute_operation_counts'
+        compute='_compute_operation_counts',
+        store=True
     )
     deployed_equipment_count = fields.Integer(
         string='Deployed Equipment Count',
-        compute='_compute_operation_counts'
+        compute='_compute_operation_counts',
+        store=True
     )
     expense_count = fields.Integer(
         string='Expense Count',
-        compute='_compute_operation_counts'
+        compute='_compute_operation_counts',
+        store=True
     )
     state_history_count = fields.Integer(
         string='State History Count',
-        compute='_compute_operation_counts'
+        compute='_compute_operation_counts',
+        store=True
     )
 
     is_over_budget = fields.Boolean(
         string='Over Budget',
-        compute='_compute_risk_indicators'
+        compute='_compute_risk_indicators',
+        store=True
     )
     is_near_budget = fields.Boolean(
         string='Near Budget Limit',
-        compute='_compute_risk_indicators'
+        compute='_compute_risk_indicators',
+        store=True
     )
     is_ending_soon = fields.Boolean(
         string='Ending Soon',
-        compute='_compute_risk_indicators'
+        compute='_compute_risk_indicators',
+        store=True
     )
     is_overdue = fields.Boolean(
         string='Overdue Operation',
-        compute='_compute_risk_indicators'
+        compute='_compute_risk_indicators',
+        store=True
     )
     has_outstanding_resources_closing = fields.Boolean(
         string='Outstanding Resources in Closing',
-        compute='_compute_risk_indicators'
+        compute='_compute_risk_indicators',
+        store=True
     )
     has_outstanding_equipment_closing = fields.Boolean(
         string='Outstanding Equipment in Closing',
-        compute='_compute_risk_indicators'
+        compute='_compute_risk_indicators',
+        store=True
     )
     missing_closing_info = fields.Boolean(
         string='Missing Closing Info',
-        compute='_compute_risk_indicators'
+        compute='_compute_risk_indicators',
+        store=True
     )
     risk_level = fields.Selection(
         [
@@ -252,36 +274,44 @@ class TemporaryOperation(models.Model):
             ('critical', 'Critical')
         ],
         string='Operation Risk Level',
-        compute='_compute_risk_indicators'
+        compute='_compute_risk_indicators',
+        store=True
     )
 
     checklist_resources_returned = fields.Boolean(
         string='All Resources Returned',
-        compute='_compute_closing_checklist'
+        compute='_compute_closing_checklist',
+        store=True
     )
     checklist_equipment_returned = fields.Boolean(
         string='All Equipment Returned',
-        compute='_compute_closing_checklist'
+        compute='_compute_closing_checklist',
+        store=True
     )
     checklist_expenses_recorded = fields.Boolean(
         string='Expenses Recorded',
-        compute='_compute_closing_checklist'
+        compute='_compute_closing_checklist',
+        store=True
     )
     checklist_no_outstanding = fields.Boolean(
         string='No Outstanding Operational Items',
-        compute='_compute_closing_checklist'
+        compute='_compute_closing_checklist',
+        store=True
     )
     checklist_dates_available = fields.Boolean(
         string='Required Dates Available',
-        compute='_compute_closing_checklist'
+        compute='_compute_closing_checklist',
+        store=True
     )
     checklist_financials_ok = fields.Boolean(
         string='Final Financials OK',
-        compute='_compute_closing_checklist'
+        compute='_compute_closing_checklist',
+        store=True
     )
     checklist_ready_for_close = fields.Boolean(
         string='Operation Ready for Closure',
-        compute='_compute_closing_checklist'
+        compute='_compute_closing_checklist',
+        store=True
     )
 
     @api.depends('employee_ids', 'resource_ids', 'budget', 'expense_ids')
