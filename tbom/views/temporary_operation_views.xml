@@ -93,6 +93,11 @@
 
                 <!-- ── FORM SHEET ───────────────────────────────────────── -->
                 <sheet>
+                    <!-- Visual Ribbon Indicators -->
+                    <widget name="web_ribbon" title="Over Budget" bg_color="text-bg-danger" invisible="not is_over_budget"/>
+                    <widget name="web_ribbon" title="Near Budget Limit" bg_color="text-bg-warning" invisible="not is_near_budget or is_over_budget"/>
+                    <widget name="web_ribbon" title="Ready for Closure" bg_color="text-bg-success" invisible="not checklist_ready_for_close"/>
+
                     <div class="oe_button_box" name="button_box">
                         <button name="action_view_resources" type="object" class="oe_stat_button" icon="fa-cubes">
                             <field name="resource_count" widget="statinfo" string="Resources"/>
@@ -110,211 +115,166 @@
                             <field name="state_history_count" widget="statinfo" string="State History"/>
                         </button>
                     </div>
+
                     <!-- Budget Alert Banners -->
-                    <div class="alert alert-warning text-center" role="alert" invisible="budget_utilization &lt; 90 or budget_utilization &gt;= 100 or budget &lt;= 0">
+                    <div class="alert alert-warning text-center" role="alert" invisible="not is_near_budget or is_over_budget">
                         <strong>Approaching Budget Limit:</strong> This operation has utilized <field name="budget_utilization" readonly="1" class="fw-bold"/>% of its allocated budget.
                     </div>
-                    <div class="alert alert-danger text-center" role="alert" invisible="budget_utilization &lt; 100 or budget &lt;= 0">
+                    <div class="alert alert-danger text-center" role="alert" invisible="not is_over_budget">
                         <strong>Over Budget:</strong> This operation is over budget! Utilization is at <field name="budget_utilization" readonly="1" class="fw-bold"/>%.
                     </div>
-
 
                     <!-- Operation Identity Block -->
                     <div class="oe_title">
                         <label for="name"/>
                         <h1>
                             <field name="name"
-                                   placeholder="e.g. Summer Promotional Exhibition"/>
+                                   placeholder="e.g. Tech Expo 2026 - Dubai"/>
                         </h1>
                         <div class="text-muted small">
-                            <field name="code" placeholder="e.g. OP-2026-001"/>
+                            <field name="code" readonly="1"/>
                         </div>
                     </div>
 
-                    <!-- Core Operation Fields -->
-                    <group>
-                        <group string="Operation Details">
-                            <field name="operation_type"/>
-                            <field name="location"
-                                   placeholder="e.g. Hall A, Exhibition Center"/>
-                            <field name="responsible_id"
-                                   options="{'no_create': True}"/>
-                            <field name="company_id"
-                                   groups="base.group_multi_company"/>
-                        </group>
-                        <group string="Schedule &amp; Budget">
-                            <field name="start_date"/>
-                            <field name="end_date"/>
-                            <field name="budget"/>
-                        </group>
-                    </group>
-
-                    <!-- Operation Health & Risk Control Center -->
-                    <group string="Operation Health &amp; Risk Control Center">
-                        <group string="Timeline Details">
-                            <field name="duration" string="Total Duration (Days)" readonly="1"/>
-                            <field name="days_elapsed" string="Days Elapsed" readonly="1"/>
-                            <field name="days_remaining" string="Days Remaining" readonly="1"/>
-                            <field name="employee_count" string="Assigned Employees" readonly="1"/>
-                        </group>
-                        <group string="Resource utilization &amp; Financials">
-                            <field name="resource_count" string="Total Resources" readonly="1"/>
-                            <field name="deployed_resource_count" string="Deployed Resources" readonly="1"/>
-                            <field name="equipment_count" string="Total Equipment" readonly="1"/>
-                            <field name="deployed_equipment_count" string="Deployed Equipment" readonly="1"/>
-                            <field name="total_expenses" string="Total Expenses" readonly="1"/>
-                            <field name="remaining_budget" string="Remaining Budget" readonly="1"/>
-                            <field name="budget_utilization" widget="progressbar" string="Budget Utilization" readonly="1"/>
-                        </group>
-                        <group string="Critical Attention &amp; Risk Levels">
-                            <field name="risk_level" widget="badge" 
-                                   decoration-success="risk_level == 'normal'" 
-                                   decoration-warning="risk_level == 'warning'" 
-                                   decoration-danger="risk_level == 'critical'"
-                                   string="Risk Level" readonly="1"/>
-                            <field name="is_overdue" string="Operation Overdue" readonly="1" invisible="not is_overdue" class="text-danger fw-bold"/>
-                            <field name="is_ending_soon" string="Ending Soon" readonly="1" invisible="not is_ending_soon" class="text-warning fw-bold"/>
-                            <field name="is_over_budget" string="Over Budget Warning" readonly="1" invisible="not is_over_budget" class="text-danger fw-bold"/>
-                            <field name="is_near_budget" string="Near Budget Limit" readonly="1" invisible="not is_near_budget" class="text-warning fw-bold"/>
-                            <field name="has_outstanding_resources_closing" string="Resources Outstanding in Closing" readonly="1" invisible="not has_outstanding_resources_closing" class="text-warning fw-bold"/>
-                            <field name="has_outstanding_equipment_closing" string="Equipment Outstanding in Closing" readonly="1" invisible="not has_outstanding_equipment_closing" class="text-warning fw-bold"/>
-                            <field name="missing_closing_info" string="Missing Required Closing Data" readonly="1" invisible="not missing_closing_info" class="text-danger fw-bold"/>
-                        </group>
-                    </group>
-
-                    <!-- ── NOTEBOOK ─────────────────────────────────────── -->
+                    <!-- ── TABBED NOTEBOOK ─────────────────────────────────── -->
                     <notebook>
 
-                        <!-- EMPLOYEES TAB -->
-                        <page string="Employees" name="employees_page">
-                            <field name="employee_ids">
-                                <list string="Assigned Employees">
-                                    <field name="name"/>
-                                    <field name="job_id"/>
-                                    <field name="department_id" optional="show"/>
-                                    <field name="work_email" optional="show"/>
-                                </list>
-                            </field>
-                        </page>
-
-                        <!-- RESOURCES TAB -->
-                        <page string="Resources" name="resources_page">
-                            <field name="resource_ids">
-                                <list string="Resources"
-                                      editable="bottom"
-                                      decoration-warning="status == 'deployed'"
-                                      decoration-danger="status == 'damaged'"
-                                      decoration-success="status == 'returned'">
-                                    <field name="name"/>
-                                    <field name="resource_type"/>
-                                    <field name="quantity"/>
-                                    <field name="assigned_employee_id" optional="show"/>
-                                    <field name="status"
-                                           widget="badge"
-                                           decoration-info="status == 'planned'"
-                                           decoration-warning="status == 'deployed'"
-                                           decoration-success="status == 'returned'"
-                                           decoration-danger="status == 'damaged'"/>
-                                </list>
-                            </field>
-                        </page>
-
-                        <!-- EQUIPMENT TAB -->
-                        <page string="Equipment" name="equipment_page">
-                            <field name="equipment_ids">
-                                <list string="Equipment"
-                                      editable="bottom"
-                                      decoration-warning="status == 'deployed' and not return_date"
-                                      decoration-success="status == 'returned'">
-                                    <field name="name"/>
-                                    <field name="employee_id" optional="show"/>
-                                    <field name="deployment_date"/>
-                                    <field name="return_date"/>
-                                    <field name="status"
-                                           widget="badge"
-                                           decoration-info="status == 'planned'"
-                                           decoration-warning="status == 'deployed'"
-                                           decoration-success="status == 'returned'"/>
-                                </list>
-                            </field>
-                        </page>
-
-                        <!-- EXPENSES TAB -->
-                        <page string="Expenses" name="expenses_page">
-                            <field name="expense_ids">
-                                <list string="Expenses" editable="bottom">
-                                    <field name="date"/>
-                                    <field name="description"/>
-                                    <field name="amount" sum="Total"/>
-                                    <field name="employee_id" optional="show"/>
-                                </list>
-                            </field>
-                        </page>
-
-                        <!-- DASHBOARD TAB -->
-                        <page string="Dashboard" name="dashboard_page">
-                            <!-- A. Operational Status -->
-                            <group string="Operational Status">
-                                <group>
-                                    <field name="state"
-                                           readonly="1"
-                                           string="Current Status"
-                                           widget="badge"
-                                           decoration-info="state == 'planned'"
-                                           decoration-warning="state == 'setup' or state == 'closing'"
-                                           decoration-success="state == 'active'"
-                                           decoration-danger="state == 'cancelled'"/>
-                                    <field name="employee_count"
-                                           readonly="1"
-                                           string="Assigned Employees"/>
+                        <!-- TAB 1: OVERVIEW & DATES -->
+                        <page string="Overview &amp; Dates" name="overview_page">
+                            <group>
+                                <group string="Operation Details">
+                                    <field name="operation_type"/>
+                                    <field name="location"
+                                           placeholder="e.g. Hall 4, World Trade Center"/>
+                                    <field name="responsible_id"
+                                           options="{'no_create': True}"/>
+                                    <field name="company_id"
+                                           groups="base.group_multi_company"/>
+                                </group>
+                                <group string="Schedule &amp; Timeline">
+                                    <field name="start_date"/>
+                                    <field name="end_date"/>
+                                    <field name="duration" string="Total Duration (Days)" readonly="1"/>
+                                    <field name="days_elapsed" string="Days Elapsed" readonly="1"/>
+                                    <field name="days_remaining" string="Days Remaining" readonly="1"/>
                                 </group>
                             </group>
-
-                            <!-- B. Resource Utilization -->
-                            <group string="Resource Utilization">
-                                <group string="Summary">
-                                    <field name="resource_count"
-                                           readonly="1"
-                                           string="Total Resources"/>
-                                </group>
-                                <group string="Breakdown">
-                                    <field name="planned_resource_count"
-                                           readonly="1"
-                                           string="Planned"/>
-                                    <field name="deployed_resource_count"
-                                           readonly="1"
-                                           string="Deployed"/>
-                                    <field name="returned_resource_count"
-                                           readonly="1"
-                                           string="Returned"/>
-                                </group>
-                            </group>
-
-                            <!-- C. Financial Health -->
-                            <group string="Financial Health">
-                                <group>
-                                    <field name="budget"
-                                           readonly="1"
-                                           string="Total Budget"/>
-                                    <field name="total_expenses"
-                                           readonly="1"
-                                           string="Total Expenses"/>
-                                </group>
-                                <group>
-                                    <field name="remaining_budget"
-                                           readonly="1"
-                                           string="Remaining Budget"/>
-                                    <field name="budget_utilization"
-                                           readonly="1"
-                                           widget="progressbar"
-                                           string="Budget Utilization (%)"/>
-                                </group>
+                            <group string="Operational Description &amp; Scope">
+                                <field name="description"
+                                       placeholder="Describe the temporary operation objectives, scope, location specifics, and operational guidelines..."
+                                       nolabel="1"/>
                             </group>
                         </page>
 
-                        <!-- STATE HISTORY TAB -->
-                        <page string="State History" name="history_page">
-                            <field name="state_history_ids">
+                        <!-- TAB 2: TEAM & RESOURCES -->
+                        <page string="Team &amp; Resources" name="team_resources_page">
+                            <notebook>
+                                <page string="Assigned Employees" name="employees_subtab">
+                                    <field name="employee_ids">
+                                        <list string="Assigned Employees">
+                                            <field name="name"/>
+                                            <field name="job_id"/>
+                                            <field name="department_id" optional="show"/>
+                                            <field name="work_email" optional="show"/>
+                                        </list>
+                                    </field>
+                                </page>
+                                <page string="Operation Resources" name="resources_subtab">
+                                    <field name="resource_ids">
+                                        <list string="Resources"
+                                              editable="bottom"
+                                              decoration-warning="status == 'deployed'"
+                                              decoration-danger="status == 'damaged'"
+                                              decoration-success="status == 'returned'">
+                                            <field name="name"/>
+                                            <field name="resource_type"/>
+                                            <field name="quantity"/>
+                                            <field name="assigned_employee_id" optional="show"/>
+                                            <field name="status"
+                                                   widget="badge"
+                                                   decoration-info="status == 'planned'"
+                                                   decoration-warning="status == 'deployed'"
+                                                   decoration-success="status == 'returned'"
+                                                   decoration-danger="status == 'damaged'"/>
+                                        </list>
+                                    </field>
+                                </page>
+                                <page string="Operation Equipment" name="equipment_subtab">
+                                    <field name="equipment_ids">
+                                        <list string="Equipment"
+                                              editable="bottom"
+                                              decoration-warning="status == 'deployed' and not return_date"
+                                              decoration-success="status == 'returned'">
+                                            <field name="name"/>
+                                            <field name="employee_id" optional="show"/>
+                                            <field name="deployment_date"/>
+                                            <field name="return_date"/>
+                                            <field name="status"
+                                                   widget="badge"
+                                                   decoration-info="status == 'planned'"
+                                                   decoration-warning="status == 'deployed'"
+                                                   decoration-success="status == 'returned'"/>
+                                        </list>
+                                    </field>
+                                </page>
+                            </notebook>
+                        </page>
+
+                        <!-- TAB 3: FINANCIALS & EXPENSES -->
+                        <page string="Financials &amp; Expenses" name="financials_page">
+                            <group string="Budget &amp; Expenditure Summary">
+                                <group string="Budget Allocation">
+                                    <field name="budget"/>
+                                    <field name="total_expenses" string="Total Expenses" readonly="1"/>
+                                    <field name="remaining_budget" string="Remaining Budget" readonly="1"/>
+                                    <field name="budget_utilization" widget="progressbar" string="Budget Utilization" readonly="1"/>
+                                </group>
+                                <group string="Financial Risk Indicators">
+                                    <field name="risk_level" widget="badge"
+                                           decoration-success="risk_level == 'normal'"
+                                           decoration-warning="risk_level == 'warning'"
+                                           decoration-danger="risk_level == 'critical'"
+                                           string="Operation Risk Level" readonly="1"/>
+                                    <field name="is_over_budget" string="Over Budget Warning" readonly="1" invisible="not is_over_budget" class="text-danger fw-bold"/>
+                                    <field name="is_near_budget" string="Near Budget Limit" readonly="1" invisible="not is_near_budget" class="text-warning fw-bold"/>
+                                    <field name="is_ending_soon" string="Ending Soon" readonly="1" invisible="not is_ending_soon" class="text-warning fw-bold"/>
+                                    <field name="is_overdue" string="Operation Overdue" readonly="1" invisible="not is_overdue" class="text-danger fw-bold"/>
+                                </group>
+                            </group>
+                            <group string="Expense Ledger">
+                                <field name="expense_ids" nolabel="1">
+                                    <list string="Expenses" editable="bottom">
+                                        <field name="date"/>
+                                        <field name="description"/>
+                                        <field name="amount" sum="Total"/>
+                                        <field name="employee_id" optional="show"/>
+                                    </list>
+                                </field>
+                            </group>
+                        </page>
+
+                        <!-- TAB 4: CLOSING CHECKLIST -->
+                        <page string="Closing Checklist" name="closing_checklist_page" invisible="state not in ('closing', 'closed')">
+                            <group string="Ready for Closure Checklist">
+                                <field name="checklist_resources_returned" widget="boolean" string="All Resources Returned" readonly="1"/>
+                                <field name="checklist_equipment_returned" widget="boolean" string="All Equipment Returned" readonly="1"/>
+                                <field name="checklist_expenses_recorded" widget="boolean" string="Expenses Recorded" readonly="1"/>
+                                <field name="checklist_no_outstanding" widget="boolean" string="No Outstanding Operational Items" readonly="1"/>
+                                <field name="checklist_dates_available" widget="boolean" string="Required Dates Available" readonly="1"/>
+                                <field name="checklist_financials_ok" widget="boolean" string="Final Financials OK" readonly="1"/>
+                                <field name="checklist_ready_for_close" widget="boolean" string="Operation Ready for Closure" readonly="1"/>
+                            </group>
+                            <div class="alert alert-info text-center" role="alert" invisible="checklist_ready_for_close">
+                                <strong>Closure Pending:</strong> Please ensure all checklist items are ticked before closing the operation. Deployed resources and equipment must be returned, and start/end dates must be valid.
+                            </div>
+                            <div class="alert alert-success text-center" role="alert" invisible="not checklist_ready_for_close">
+                                <strong>Ready to Close:</strong> All closure requirements are satisfied. The operation is ready to be closed.
+                            </div>
+                        </page>
+
+                        <!-- TAB 5: AUDIT HISTORY -->
+                        <page string="Audit History" name="history_page">
+                            <field name="state_history_ids" readonly="1">
                                 <list string="State Transitions"
                                       create="false"
                                       delete="false"
@@ -338,32 +298,6 @@
                                     <field name="user_id" string="Changed By"/>
                                 </list>
                             </field>
-                        </page>
-
-                        <!-- CLOSING CHECKLIST TAB -->
-                        <page string="Closing Checklist" name="closing_checklist_page" invisible="state not in ('closing', 'closed')">
-                            <group string="Ready for Closure Checklist">
-                                <field name="checklist_resources_returned" widget="boolean" string="All Resources Returned" readonly="1"/>
-                                <field name="checklist_equipment_returned" widget="boolean" string="All Equipment Returned" readonly="1"/>
-                                <field name="checklist_expenses_recorded" widget="boolean" string="Expenses Recorded" readonly="1"/>
-                                <field name="checklist_no_outstanding" widget="boolean" string="No Outstanding Operational Items" readonly="1"/>
-                                <field name="checklist_dates_available" widget="boolean" string="Required Dates Available" readonly="1"/>
-                                <field name="checklist_financials_ok" widget="boolean" string="Final Financials OK" readonly="1"/>
-                                <field name="checklist_ready_for_close" widget="boolean" string="Operation Ready for Closure" readonly="1"/>
-                            </group>
-                            <div class="alert alert-info text-center" role="alert" invisible="checklist_ready_for_close">
-                                <strong>Closure Pending:</strong> Please ensure all checklist items are ticked before closing the operation. Deployed resources and equipment must be returned, and start/end dates must be valid.
-                            </div>
-                            <div class="alert alert-success text-center" role="alert" invisible="not checklist_ready_for_close">
-                                <strong>Ready to Close:</strong> All closure requirements are satisfied. The operation is ready to be closed.
-                            </div>
-                        </page>
-
-                        <!-- DESCRIPTION TAB -->
-                        <page string="Description" name="description_page">
-                            <field name="description"
-                                   placeholder="Describe the temporary operation details, objectives, scope, and any relevant operational notes..."
-                                   nolabel="1"/>
                         </page>
 
                     </notebook>
@@ -512,7 +446,6 @@
             <kanban default_group_by="state"
                     class="o_kanban_small_column"
                     records_draggable="false">
-                <!-- Declare all fields used in the card template -->
                 <field name="name"/>
                 <field name="code"/>
                 <field name="operation_type"/>
@@ -522,47 +455,55 @@
                 <field name="responsible_id"/>
                 <field name="budget"/>
                 <field name="state"/>
+                <field name="risk_level"/>
+                <field name="budget_utilization"/>
+                <field name="is_over_budget"/>
+                <field name="is_near_budget"/>
+                <field name="is_overdue"/>
                 <templates>
                     <t t-name="card">
                         <div class="oe_kanban_global_click">
 
-                            <!-- Operation Name (prominent) -->
+                            <!-- Title & Code -->
                             <div class="o_kanban_record_title fw-bold">
                                 <field name="name"/>
                             </div>
-
-                            <!-- Operation Code (muted identifier) -->
                             <div class="text-muted small mb4">
                                 <field name="code"/>
                             </div>
 
-                            <!-- Location -->
+                            <!-- Location & Type -->
                             <div class="mt4">
                                 <i class="fa fa-map-marker fa-fw text-muted"
                                    role="img" aria-label="Location"/>
                                 <field name="location"/>
                             </div>
-
-                            <!-- Operation Type -->
                             <div class="text-muted small">
                                 <field name="operation_type"/>
                             </div>
 
-                            <!-- Date Range -->
+                            <!-- Dates -->
                             <div class="text-muted small mt4">
                                 <i class="fa fa-calendar fa-fw"
                                    role="img" aria-label="Dates"/>
                                 <field name="start_date"/> &#8211; <field name="end_date"/>
                             </div>
 
-                            <!-- Card Footer: Budget + Responsible -->
-                            <div class="o_kanban_record_bottom mt8">
-                                <div class="oe_kanban_bottom_left fw-bold">
-                                    <field name="budget"/>
+                            <!-- Progress & Risk Badge -->
+                            <div class="mt8 mb4">
+                                <field name="budget_utilization" widget="progressbar"/>
+                            </div>
+
+                            <!-- Card Bottom -->
+                            <div class="o_kanban_record_bottom mt4">
+                                <div class="oe_kanban_bottom_left">
+                                    <field name="risk_level" widget="badge"
+                                           decoration-success="risk_level == 'normal'"
+                                           decoration-warning="risk_level == 'warning'"
+                                           decoration-danger="risk_level == 'critical'"/>
                                 </div>
                                 <div class="oe_kanban_bottom_right">
-                                    <field name="responsible_id"
-                                           widget="many2one_avatar_user"/>
+                                    <field name="responsible_id" widget="many2one_avatar_user"/>
                                 </div>
                             </div>
 
@@ -582,6 +523,7 @@
         <field name="res_model">tbom.temporary.operation</field>
         <field name="view_mode">kanban,list,form,calendar,graph,pivot</field>
         <field name="search_view_id" ref="view_temporary_operation_search"/>
+        <field name="context">{'search_default_active_operations': 1, 'search_default_group_by_state': 1}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
                 Create a new Temporary Operation

@@ -181,35 +181,41 @@ class TemporaryOperation(models.Model):
     total_expenses = fields.Float(
         string='Total Expenses',
         compute='_compute_dashboard_stats',
-        store=True
+        store=True,
+        help="Sum of all recorded expense amounts for this operation."
     )
 
     remaining_budget = fields.Float(
         string='Remaining Budget',
         compute='_compute_dashboard_stats',
-        store=True
+        store=True,
+        help="Calculated as allocated Budget minus Total Expenses."
     )
 
     budget_utilization = fields.Float(
         string='Budget Utilization (%)',
         compute='_compute_dashboard_stats',
-        store=True
+        store=True,
+        help="Percentage of Budget spent, calculated as (Total Expenses / Budget) * 100."
     )
 
     duration = fields.Integer(
         string='Total Duration (Days)',
         compute='_compute_operation_duration',
-        store=True
+        store=True,
+        help="Total days between Start Date and End Date inclusive."
     )
     days_elapsed = fields.Integer(
         string='Days Elapsed',
         compute='_compute_operation_duration',
-        store=True
+        store=True,
+        help="Days passed since Start Date up to Today."
     )
     days_remaining = fields.Integer(
         string='Days Remaining',
         compute='_compute_operation_duration',
-        store=True
+        store=True,
+        help="Days remaining until End Date."
     )
     equipment_count = fields.Integer(
         string='Equipment Count',
@@ -235,22 +241,26 @@ class TemporaryOperation(models.Model):
     is_over_budget = fields.Boolean(
         string='Over Budget',
         compute='_compute_risk_indicators',
-        store=True
+        store=True,
+        help="True when Total Expenses exceed the allocated Budget."
     )
     is_near_budget = fields.Boolean(
         string='Near Budget Limit',
         compute='_compute_risk_indicators',
-        store=True
+        store=True,
+        help="True when Budget Utilization reaches 90% or higher."
     )
     is_ending_soon = fields.Boolean(
         string='Ending Soon',
         compute='_compute_risk_indicators',
-        store=True
+        store=True,
+        help="True when operation is active and end date is within 3 days."
     )
     is_overdue = fields.Boolean(
         string='Overdue Operation',
         compute='_compute_risk_indicators',
-        store=True
+        store=True,
+        help="True when operation remains active past its scheduled End Date."
     )
     has_outstanding_resources_closing = fields.Boolean(
         string='Outstanding Resources in Closing',
@@ -275,7 +285,8 @@ class TemporaryOperation(models.Model):
         ],
         string='Operation Risk Level',
         compute='_compute_risk_indicators',
-        store=True
+        store=True,
+        help="Evaluated as Critical (Over Budget / Overdue), Warning (Near Limit / Ending Soon / Outstanding Items), or Normal."
     )
 
     checklist_resources_returned = fields.Boolean(

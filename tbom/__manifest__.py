@@ -1,6 +1,6 @@
 {
-    'name': 'Temporary Business Operations Manager',
-    'version': '1.1.0',
+    'name': 'Temporary Business Operations Management (TBOM)',
+    'version': '1.1.2',
     'category': 'Operations',
     'summary': 'Manage temporary, time- and location-bound business operations',
     'description': """
