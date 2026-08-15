@@ -646,7 +646,6 @@ class TemporaryOperation(models.Model):
             record.state = 'planned'
         return True
 
-    @api.returns('self', lambda value: value.id)
     def copy(self, default=None):
         default = dict(default or {})
         
