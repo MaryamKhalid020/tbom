@@ -26,6 +26,12 @@
         <field name="model">tbom.equipment</field>
         <field name="arch" type="xml">
             <form string="Operation Equipment">
+                <header>
+                    <button name="action_back_to_operation"
+                            string="Back to Operation"
+                            type="object"
+                            class="btn-secondary"/>
+                </header>
                 <sheet>
                     <div class="oe_title">
                         <label for="name" class="oe_edit_only"/>

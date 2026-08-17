@@ -434,57 +434,48 @@ class TemporaryOperation(models.Model):
 
     def action_view_resources(self):
         self.ensure_one()
-        return {
-            'name': 'Resources',
-            'type': 'ir.actions.act_window',
-            'res_model': 'tbom.resource',
-            'view_mode': 'list,form',
+        action = self.env.ref('tbom.action_tbom_resource').read()[0]
+        action.update({
             'domain': [('operation_id', '=', self.id)],
             'context': {'default_operation_id': self.id},
-        }
+        })
+        return action
 
     def action_view_equipment(self):
         self.ensure_one()
-        return {
-            'name': 'Equipment',
-            'type': 'ir.actions.act_window',
-            'res_model': 'tbom.equipment',
-            'view_mode': 'list,form',
+        action = self.env.ref('tbom.action_tbom_equipment').read()[0]
+        action.update({
             'domain': [('operation_id', '=', self.id)],
             'context': {'default_operation_id': self.id},
-        }
+        })
+        return action
 
     def action_view_expenses(self):
         self.ensure_one()
-        return {
-            'name': 'Expenses',
-            'type': 'ir.actions.act_window',
-            'res_model': 'tbom.expense',
-            'view_mode': 'list,form',
+        action = self.env.ref('tbom.action_tbom_expense').read()[0]
+        action.update({
             'domain': [('operation_id', '=', self.id)],
             'context': {'default_operation_id': self.id},
-        }
+        })
+        return action
 
     def action_view_employees(self):
         self.ensure_one()
-        return {
-            'name': 'Assigned Employees',
-            'type': 'ir.actions.act_window',
-            'res_model': 'hr.employee',
-            'view_mode': 'list,form',
-            'domain': [('id', 'in', self.employee_ids.ids)],
-        }
+        action = self.env.ref('tbom.action_tbom_employee_assignment').read()[0]
+        action.update({
+            'domain': [('operation_id', '=', self.id)],
+            'context': {'default_operation_id': self.id},
+        })
+        return action
 
     def action_view_state_history(self):
         self.ensure_one()
-        return {
-            'name': 'State History',
-            'type': 'ir.actions.act_window',
-            'res_model': 'tbom.operation.state.history',
-            'view_mode': 'list,form',
+        action = self.env.ref('tbom.action_tbom_state_history').read()[0]
+        action.update({
             'domain': [('operation_id', '=', self.id)],
             'context': {'default_operation_id': self.id, 'create': False, 'delete': False, 'edit': False},
-        }
+        })
+        return action
 
     # Validations
     @api.constrains('start_date', 'end_date')

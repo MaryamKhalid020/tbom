@@ -90,3 +90,16 @@ class TbomResource(models.Model):
             if record.operation_id.state in ('closed', 'cancelled'):
                 raise ValidationError('Cannot delete resources of a closed or cancelled operation.')
         return super(TbomResource, self).unlink()
+
+    def action_back_to_operation(self):
+        self.ensure_one()
+        if self.operation_id:
+            return {
+                'name': 'Temporary Operation',
+                'type': 'ir.actions.act_window',
+                'res_model': 'tbom.temporary.operation',
+                'view_mode': 'form',
+                'res_id': self.operation_id.id,
+                'target': 'current',
+            }
+        return {'type': 'ir.actions.act_window_close'}

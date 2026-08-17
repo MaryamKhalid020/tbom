@@ -22,6 +22,12 @@
         <field name="model">tbom.expense</field>
         <field name="arch" type="xml">
             <form string="Expense">
+                <header>
+                    <button name="action_back_to_operation"
+                            string="Back to Operation"
+                            type="object"
+                            class="btn-secondary"/>
+                </header>
                 <sheet>
                     <group>
                         <group string="Expense Details">

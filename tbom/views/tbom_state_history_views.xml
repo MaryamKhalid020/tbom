@@ -36,6 +36,12 @@
                   create="false"
                   delete="false"
                   edit="false">
+                <header>
+                    <button name="action_back_to_operation"
+                            string="Back to Operation"
+                            type="object"
+                            class="btn-secondary"/>
+                </header>
                 <sheet>
                     <group>
                         <group string="Audit Information">
