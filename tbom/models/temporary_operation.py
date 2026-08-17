@@ -680,6 +680,17 @@ class TemporaryOperation(models.Model):
             record.state = 'planned'
         return True
 
+    def unlink(self):
+        for record in self:
+            if record.state in ('active', 'closing', 'closed'):
+                raise ValidationError(
+                    f'Operation "{record.name}" ({record.code}) cannot be deleted because it is '
+                    f'in "{record.state.capitalize()}" state.\n\n'
+                    'Only Planned, Setup, or Cancelled operations may be deleted. '
+                    'Cancel the operation first if you need to remove it.'
+                )
+        return super(TemporaryOperation, self).unlink()
+
     def copy(self, default=None):
         default = dict(default or {})
         
