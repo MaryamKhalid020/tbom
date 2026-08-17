@@ -65,7 +65,7 @@
                 <filter string="To Active" name="to_active" domain="[('new_state', '=', 'active')]"/>
                 <filter string="To Closed" name="to_closed" domain="[('new_state', '=', 'closed')]"/>
                 <filter string="To Cancelled" name="to_cancelled" domain="[('new_state', '=', 'cancelled')]"/>
-                <group expand="0" string="Group By">
+                <group>
                     <filter string="Operation" name="group_by_operation" context="{'group_by': 'operation_id'}"/>
                     <filter string="Changed By" name="group_by_user" context="{'group_by': 'user_id'}"/>
                 </group>

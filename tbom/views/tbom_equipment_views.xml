@@ -61,7 +61,7 @@
                 <filter string="Planned" name="planned" domain="[('status', '=', 'planned')]"/>
                 <filter string="Deployed" name="deployed" domain="[('status', '=', 'deployed')]"/>
                 <filter string="Returned" name="returned" domain="[('status', '=', 'returned')]"/>
-                <group expand="0" string="Group By">
+                <group>
                     <filter string="Operation" name="group_by_operation" context="{'group_by': 'operation_id'}"/>
                     <filter string="Custodian" name="group_by_employee" context="{'group_by': 'employee_id'}"/>
                     <filter string="Status" name="group_by_status" context="{'group_by': 'status'}"/>

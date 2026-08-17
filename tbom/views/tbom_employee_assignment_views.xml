@@ -76,7 +76,7 @@
                 <field name="role" string="Role"/>
                 <filter string="Active" name="active" domain="[('active', '=', True)]"/>
                 <filter string="Inactive" name="inactive" domain="[('active', '=', False)]"/>
-                <group expand="0" string="Group By">
+                <group>
                     <filter string="Operation" name="group_by_operation" context="{'group_by': 'operation_id'}"/>
                     <filter string="Employee" name="group_by_employee" context="{'group_by': 'employee_id'}"/>
                     <filter string="Job Position" name="group_by_job" context="{'group_by': 'job_id'}"/>
