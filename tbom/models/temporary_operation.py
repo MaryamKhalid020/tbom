@@ -104,7 +104,7 @@ class TemporaryOperation(models.Model):
         'res.users',
         string='Responsible Manager',
         tracking=True,
-        domain=lambda self: [('groups_id', 'in', self.env.ref('tbom.group_tbom_manager').ids)]
+        domain=lambda self: [('group_ids', 'in', self.env.ref('tbom.group_tbom_manager').ids)]
     )
 
     budget = fields.Float(

@@ -316,7 +316,7 @@ class TestTemporaryOperationLifecycle(TransactionCase):
             'name': 'Test User',
             'login': 'testuser',
             'email': 'testuser@example.com',
-            'groups_id': [
+            'group_ids': [
                 (6, 0, [
                     self.env.ref('base.group_user').id,
                     self.env.ref('tbom.group_tbom_user').id
