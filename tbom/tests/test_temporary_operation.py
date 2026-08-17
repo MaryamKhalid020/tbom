@@ -362,3 +362,104 @@ class TestTemporaryOperationLifecycle(TransactionCase):
         report = self.env['ir.actions.report']._get_report_from_name('tbom.report_temporary_operation_template')
         html_content, report_format = report._render_qweb_html([op.id])
         self.assertTrue(html_content)
+
+    def test_employee_assignments(self):
+        """Test employee assignment lifecycle, validations, and constraints."""
+        op = self.operation_model.create({
+            'name': 'Assignment Test',
+            'code': 'OP-ASSIGN-001',
+            'operation_type': 'other',
+            'location': 'Test Location',
+            'start_date': '2026-09-01',
+            'end_date': '2026-09-15',
+        })
+        employee = self.env['hr.employee'].create({'name': 'Alice Job'})
+
+        # 1. Successful assignment
+        assign = self.env['tbom.employee.assignment'].create({
+            'operation_id': op.id,
+            'employee_id': employee.id,
+            'role': 'Supervisor',
+            'start_date': '2026-09-01',
+            'end_date': '2026-09-10',
+        })
+        self.assertEqual(assign.role, 'Supervisor')
+        op._compute_dashboard_stats()
+        self.assertEqual(op.employee_count, 1)
+
+        # 2. Date validation (end_date < start_date)
+        with self.assertRaises(ValidationError):
+            self.env['tbom.employee.assignment'].create({
+                'operation_id': op.id,
+                'employee_id': employee.id,
+                'start_date': '2026-09-10',
+                'end_date': '2026-09-01',
+            })
+
+        # 3. Duplicate Prevention validation
+        with self.assertRaises(ValidationError):
+            self.env['tbom.employee.assignment'].create({
+                'operation_id': op.id,
+                'employee_id': employee.id,
+                'role': 'Duplicate Manager',
+            })
+
+        # 4. Closed operation restrictions
+        op.action_setup()
+        op.action_activate()
+        op.action_closing()
+        op.action_close()
+        
+        with self.assertRaises(ValidationError):
+            self.env['tbom.employee.assignment'].create({
+                'operation_id': op.id,
+                'employee_id': self.env['hr.employee'].create({'name': 'Bob Job'}).id,
+            })
+
+    def test_send_message_wizard(self):
+        """Test Send Message wizard logic, email address validation, and email creation."""
+        op = self.operation_model.create({
+            'name': 'Email Test',
+            'code': 'OP-EMAIL-001',
+            'operation_type': 'other',
+            'location': 'Test Location',
+            'start_date': '2026-09-01',
+            'end_date': '2026-09-15',
+        })
+
+        # 1. Invalid email validation
+        with self.assertRaises(ValidationError):
+            self.env['tbom.send.message.wizard'].create({
+                'operation_id': op.id,
+                'recipient_email': 'invalid_email_format',
+                'subject': 'Test Subject',
+                'body': 'Test Message Body',
+            })
+
+        # 2. Valid wizard creation
+        wizard = self.env['tbom.send.message.wizard'].create({
+            'operation_id': op.id,
+            'recipient_email': 'recipient@example.com',
+            'subject': 'Test Subject',
+            'body': 'Test Message Body',
+        })
+        self.assertEqual(wizard.recipient_email, 'recipient@example.com')
+
+        # 3. Send message failure when no SMTP is configured
+        with self.assertRaises(ValidationError):
+            wizard.action_send_message()
+
+        # 4. Send message success when SMTP server is present
+        self.env['ir.mail_server'].create({
+            'name': 'Test SMTP Server',
+            'smtp_host': 'smtp.example.com',
+            'smtp_port': 25,
+            'smtp_user': 'sender@example.com',
+        })
+        res = wizard.action_send_message()
+        self.assertEqual(res['type'], 'ir.actions.client')
+
+        # Verify Odoo created the mail record in the native mail.mail model
+        mail = self.env['mail.mail'].search([('email_to', '=', 'recipient@example.com')], limit=1)
+        self.assertTrue(mail)
+        self.assertEqual(mail.subject, 'Test Subject')

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Wizard Form View -->
+    <record id="view_tbom_send_message_wizard_form" model="ir.ui.view">
+        <field name="name">tbom.send.message.wizard.form</field>
+        <field name="model">tbom.send.message.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Send Message">
+                <sheet>
+                    <group>
+                        <field name="recipient_email" placeholder="e.g. recipient@example.com"/>
+                        <field name="subject" placeholder="e.g. Status Update"/>
+                    </group>
+                    <group string="Message Body">
+                        <field name="body" placeholder="Write your message here..." nolabel="1"/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_send_message" string="Send" type="object" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+</odoo>

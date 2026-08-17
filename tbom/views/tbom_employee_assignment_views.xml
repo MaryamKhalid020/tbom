@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Tree View -->
+    <record id="view_tbom_employee_assignment_tree" model="ir.ui.view">
+        <field name="name">tbom.employee.assignment.list</field>
+        <field name="model">tbom.employee.assignment</field>
+        <field name="arch" type="xml">
+            <list string="Assigned Employees">
+                <field name="employee_id"/>
+                <field name="job_id"/>
+                <field name="department_id"/>
+                <field name="work_phone"/>
+                <field name="work_email"/>
+                <field name="parent_id" string="Manager"/>
+                <field name="role"/>
+                <field name="start_date"/>
+                <field name="end_date"/>
+                <field name="active" widget="boolean_toggle"/>
+                <field name="operation_id"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="view_tbom_employee_assignment_form" model="ir.ui.view">
+        <field name="name">tbom.employee.assignment.form</field>
+        <field name="model">tbom.employee.assignment</field>
+        <field name="arch" type="xml">
+            <form string="Employee Assignment">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="employee_id" class="oe_edit_only"/>
+                        <h1>
+                            <field name="employee_id" placeholder="Select Employee..."/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Assignment Details">
+                            <field name="operation_id" options="{'no_create': True}"/>
+                            <field name="role" placeholder="e.g. Site Supervisor"/>
+                            <field name="active" widget="boolean_toggle"/>
+                        </group>
+                        <group string="Timeline">
+                            <field name="start_date"/>
+                            <field name="end_date"/>
+                        </group>
+                    </group>
+                    <group string="Employee Information">
+                        <group>
+                            <field name="job_id"/>
+                            <field name="department_id"/>
+                        </group>
+                        <group>
+                            <field name="work_phone"/>
+                            <field name="work_email"/>
+                            <field name="parent_id" string="Manager"/>
+                        </group>
+                    </group>
+                    <group string="Notes &amp; Scope">
+                        <field name="notes" placeholder="Add specific task assignment scope or handover details..." nolabel="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Search View -->
+    <record id="view_tbom_employee_assignment_search" model="ir.ui.view">
+        <field name="name">tbom.employee.assignment.search</field>
+        <field name="model">tbom.employee.assignment</field>
+        <field name="arch" type="xml">
+            <search string="Search Employee Assignments">
+                <field name="employee_id" string="Employee"/>
+                <field name="operation_id" string="Operation"/>
+                <field name="role" string="Role"/>
+                <filter string="Active" name="active" domain="[('active', '=', True)]"/>
+                <filter string="Inactive" name="inactive" domain="[('active', '=', False)]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Operation" name="group_by_operation" context="{'group_by': 'operation_id'}"/>
+                    <filter string="Employee" name="group_by_employee" context="{'group_by': 'employee_id'}"/>
+                    <filter string="Job Position" name="group_by_job" context="{'group_by': 'job_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Window Action -->
+    <record id="action_tbom_employee_assignment" model="ir.actions.act_window">
+        <field name="name">Assigned Employees</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">tbom.employee.assignment</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_tbom_employee_assignment_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Assign an Employee to an Operation
+            </p>
+            <p>
+                Track which team members are allocated to specific Temporary Operations, including their role and duration.
+            </p>
+        </field>
+    </record>
+
+    <!-- Menu Structure -->
+    <menuitem id="menu_tbom_employee_assignment_sub"
+              name="Employees"
+              parent="menu_tbom_root"
+              sequence="8"/>
+
+    <menuitem id="menu_tbom_employee_assignment"
+              name="Assigned Employees"
+              parent="menu_tbom_employee_assignment_sub"
+              action="action_tbom_employee_assignment"
+              sequence="10"/>
+
+</odoo>

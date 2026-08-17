@@ -5,4 +5,6 @@ from . import tbom_resource
 from . import tbom_expense
 from . import tbom_equipment
 from . import tbom_state_history
+from . import tbom_employee_assignment
+from . import tbom_send_message
 

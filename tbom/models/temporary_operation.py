@@ -103,7 +103,8 @@ class TemporaryOperation(models.Model):
     responsible_id = fields.Many2one(
         'res.users',
         string='Responsible Manager',
-        tracking=True
+        tracking=True,
+        domain=lambda self: [('groups_id', 'in', self.env.ref('tbom.group_tbom_manager').ids)]
     )
 
     budget = fields.Float(
@@ -125,8 +126,9 @@ class TemporaryOperation(models.Model):
         required=True
     )
 
-    employee_ids = fields.Many2many(
-        'hr.employee',
+    employee_ids = fields.One2many(
+        'tbom.employee.assignment',
+        'operation_id',
         string='Assigned Employees'
     )
 
@@ -778,3 +780,17 @@ class TemporaryOperation(models.Model):
                     'date_deadline': today,
                 })
         return True
+
+    def action_open_send_message_wizard(self):
+        self.ensure_one()
+        return {
+            'name': 'Send Message',
+            'type': 'ir.actions.act_window',
+            'res_model': 'tbom.send.message.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'default_operation_id': self.id,
+                'default_subject': f"Notification regarding Temporary Operation: {self.name} ({self.code})",
+            }
+        }

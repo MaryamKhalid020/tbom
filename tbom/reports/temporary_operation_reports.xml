@@ -65,16 +65,20 @@
                                 <tr>
                                     <th>Name</th>
                                     <th>Job Title</th>
-                                    <th>Department</th>
+                                    <th>Role / Responsibility</th>
+                                    <th>Start Date</th>
+                                    <th>End Date</th>
                                     <th>Email</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <t t-foreach="o.employee_ids" t-as="emp">
                                     <tr>
-                                        <td><t t-out="emp.name"/></td>
+                                        <td><t t-out="emp.employee_id.name"/></td>
                                         <td><t t-out="emp.job_id.name"/></td>
-                                        <td><t t-out="emp.department_id.name"/></td>
+                                        <td><t t-out="emp.role"/></td>
+                                        <td><t t-out="emp.start_date"/></td>
+                                        <td><t t-out="emp.end_date"/></td>
                                         <td><t t-out="emp.work_email"/></td>
                                     </tr>
                                 </t>

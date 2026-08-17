@@ -67,12 +67,16 @@
                             invisible="state != 'closing'"
                             groups="tbom.group_tbom_manager"
                             confirm="Are you sure you want to close this operation? Once closed, it cannot be edited."/>
-                    <!-- Post-close action -->
                     <button name="%(tbom.action_report_temporary_operation)d"
                             string="Print Final Report"
                             type="action"
                             class="oe_highlight"
                             invisible="state != 'closed'"/>
+                    <button name="action_open_send_message_wizard"
+                            string="Send Message"
+                            type="object"
+                            class="oe_highlight"
+                            invisible="state in ('closed', 'cancelled')"/>
                     <!-- Secondary (less prominent) -->
                     <button name="action_cancel"
                             string="Cancel"
@@ -171,11 +175,15 @@
                             <notebook>
                                 <page string="Assigned Employees" name="employees_subtab">
                                     <field name="employee_ids">
-                                        <list string="Assigned Employees">
-                                            <field name="name"/>
+                                        <list string="Assigned Employees" editable="bottom">
+                                            <field name="employee_id"/>
                                             <field name="job_id"/>
                                             <field name="department_id" optional="show"/>
                                             <field name="work_email" optional="show"/>
+                                            <field name="role"/>
+                                            <field name="start_date"/>
+                                            <field name="end_date"/>
+                                            <field name="active" widget="boolean_toggle"/>
                                         </list>
                                     </field>
                                 </page>
