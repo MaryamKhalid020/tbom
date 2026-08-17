@@ -6,7 +6,7 @@
         <field name="name">tbom.resource.list</field>
         <field name="model">tbom.resource</field>
         <field name="arch" type="xml">
-            <list string="Resources">
+            <list string="Resources" editable="bottom">
                 <field name="name"/>
                 <field name="resource_type"/>
                 <field name="quantity"/>

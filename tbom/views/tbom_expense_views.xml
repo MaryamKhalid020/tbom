@@ -6,7 +6,7 @@
         <field name="name">tbom.expense.list</field>
         <field name="model">tbom.expense</field>
         <field name="arch" type="xml">
-            <list string="Expenses">
+            <list string="Expenses" editable="bottom">
                 <field name="date"/>
                 <field name="description"/>
                 <field name="amount" sum="Total Amount"/>

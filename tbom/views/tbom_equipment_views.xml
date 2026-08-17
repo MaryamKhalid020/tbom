@@ -6,7 +6,7 @@
         <field name="name">tbom.equipment.list</field>
         <field name="model">tbom.equipment</field>
         <field name="arch" type="xml">
-            <list string="Operation Equipment">
+            <list string="Operation Equipment" editable="bottom">
                 <field name="name"/>
                 <field name="operation_id"/>
                 <field name="employee_id" string="Assigned Custodian"/>

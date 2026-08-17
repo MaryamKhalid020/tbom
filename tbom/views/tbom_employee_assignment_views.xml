@@ -6,7 +6,7 @@
         <field name="name">tbom.employee.assignment.list</field>
         <field name="model">tbom.employee.assignment</field>
         <field name="arch" type="xml">
-            <list string="Assigned Employees">
+            <list string="Assigned Employees" editable="bottom">
                 <field name="employee_id"/>
                 <field name="job_id"/>
                 <field name="department_id"/>
