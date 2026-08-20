@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="tbom.TbomStatusEditWidget" owl="1">
+        <div class="position-relative d-inline-block tbom-status-container" t-on-click_outside="closeDropdown">
+            <button type="button"
+                    t-att-disabled="props.readonly"
+                    t-on-click="toggleDropdown"
+                    t-attf-class="btn tbom-status-badge badge rounded-pill px-3 py-2 border-0 dropdown-toggle d-flex align-items-center gap-1 #{badgeClass}"
+                    t-att-title="props.readonly ? '' : 'Click to change status'">
+                <span class="tbom-status-dot me-1"></span>
+                <span t-esc="currentStatusLabel"/>
+            </button>
+            <div t-if="state.isOpen" class="dropdown-menu show shadow-sm border mt-1 position-absolute tbom-status-dropdown dropdown-menu-start">
+                <t t-foreach="options" t-as="option" t-key="option[0]">
+                    <button type="button"
+                            class="dropdown-item d-flex align-items-center justify-content-between py-2 px-3 fw-normal"
+                            t-att-class="{'active': option[0] === currentStatusValue}"
+                            t-on-click="(ev) => this.selectStatus(option, ev)">
+                        <span t-esc="option[1]"/>
+                        <i t-if="option[0] === currentStatusValue" class="fa fa-check text-primary ms-2"/>
+                    </button>
+                </t>
+            </div>
+        </div>
+    </t>
+</templates>

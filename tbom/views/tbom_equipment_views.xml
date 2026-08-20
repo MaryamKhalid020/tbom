@@ -43,7 +43,7 @@
                         <group string="Equipment Status">
                             <field name="operation_id" options="{'no_create': True}"/>
                             <field name="employee_id" string="Assigned Custodian"/>
-                            <field name="status"/>
+                            <field name="status" widget="tbom_status_edit"/>
                         </group>
                         <group string="Dates">
                             <field name="deployment_date"/>

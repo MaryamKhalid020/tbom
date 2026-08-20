@@ -48,7 +48,7 @@
                         </group>
                         <group string="Assignment &amp; Status">
                             <field name="assigned_employee_id"/>
-                            <field name="status"/>
+                            <field name="status" widget="tbom_status_edit"/>
                         </group>
                     </group>
                     <notebook>

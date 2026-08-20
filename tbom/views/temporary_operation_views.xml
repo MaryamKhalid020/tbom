@@ -91,8 +91,7 @@
                     <!-- Status bar — the lifecycle hero -->
                     <field name="state"
                            widget="statusbar"
-                           statusbar_visible="planned,setup,active,closing,closed"
-                           options="{'clickable': '1'}"/>
+                           statusbar_visible="planned,setup,active,closing,closed"/>
                 </header>
 
                 <!-- ── FORM SHEET ───────────────────────────────────────── -->
@@ -135,8 +134,9 @@
                             <field name="name"
                                    placeholder="e.g. Tech Expo 2026 - Dubai"/>
                         </h1>
-                        <div class="text-muted small">
-                            <field name="code" readonly="1"/>
+                        <div class="d-flex align-items-center gap-2 small">
+                            <field name="code" readonly="1" class="text-muted"/>
+                            <field name="state" widget="tbom_status_edit"/>
                         </div>
                     </div>
 

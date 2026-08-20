@@ -38,6 +38,14 @@ with a temporary operation.
         'views/tbom_send_message_views.xml',
         'reports/temporary_operation_reports.xml',
     ],
+    'assets': {
+        'web.assets_backend': [
+            'tbom/static/src/css/tbom_status_widget.css',
+            'tbom/static/src/js/history_back.js',
+            'tbom/static/src/js/tbom_status_widget.js',
+            'tbom/static/src/xml/tbom_status_widget.xml',
+        ],
+    },
     'installable': True,
     'application': True,
 }
