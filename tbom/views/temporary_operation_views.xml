@@ -337,7 +337,6 @@
                 <field name="budget" type="measure"/>
                 <field name="total_expenses" type="measure"/>
                 <field name="remaining_budget" type="measure"/>
-                <field name="budget_utilization" type="measure"/>
             </graph>
         </field>
     </record>
@@ -355,7 +354,6 @@
                 <field name="budget" type="measure"/>
                 <field name="total_expenses" type="measure"/>
                 <field name="remaining_budget" type="measure"/>
-                <field name="budget_utilization" type="measure"/>
             </pivot>
         </field>
     </record>
