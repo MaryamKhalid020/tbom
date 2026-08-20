@@ -30,41 +30,21 @@ function fixPivotHeaders() {
     const table = document.querySelector('.o_pivot_view table');
     if (!table) return;
     const rows = table.querySelectorAll('thead tr');
-    if (rows.length < 3) return; // Only apply if columns are grouped (at least 3 rows in thead)
+    if (rows.length < 3) return; // Only apply if columns are grouped
 
-    // Get the measures row (last row) to determine total columns
-    const lastRow = rows[rows.length - 1];
-    const lastRowThs = Array.from(lastRow.querySelectorAll('th'));
-    const totalCols = lastRowThs.length;
-
-    // For each intermediate grouping row
+    // For each intermediate grouping row, find the last th cell
     for (let i = 1; i < rows.length - 1; i++) {
         const tr = rows[i];
-        if (tr.querySelector('.tbom-pivot-total-header')) {
-            continue; // Already added
-        }
-
-        // Calculate the sum of colspans of the existing cells in this row
-        const ths = Array.from(tr.querySelectorAll('th'));
-        let sumColspan = 0;
-        ths.forEach(th => {
-            const colspan = parseInt(th.getAttribute('colspan') || '1', 10);
-            sumColspan += colspan;
-        });
-
-        // The difference is the missing columns for the Grand Total!
-        const missingColspan = totalCols - sumColspan;
-        if (missingColspan > 0) {
-            // Create the missing "Total" header cell
-            const totalTh = document.createElement('th');
-            totalTh.className = 'tbom-pivot-total-header o_pivot_header_cell_closed text-center font-weight-bold';
-            totalTh.style.fontWeight = 'bold';
-            totalTh.style.textAlign = 'center';
-            totalTh.setAttribute('colspan', missingColspan.toString());
-            totalTh.textContent = 'Total';
-            
-            // Append it to the row
-            tr.appendChild(totalTh);
+        const ths = tr.querySelectorAll('th');
+        if (ths.length > 0) {
+            const lastTh = ths[ths.length - 1];
+            // If the cell is empty (contains no text or only whitespace), set it to "Total"
+            if (lastTh && (lastTh.textContent.trim() === "" || lastTh.textContent.trim() === "Total")) {
+                lastTh.textContent = "Total";
+                lastTh.style.fontWeight = "bold";
+                lastTh.style.textAlign = "center";
+                lastTh.classList.add("tbom-pivot-total-header");
+            }
         }
     }
 }
