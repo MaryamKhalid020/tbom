@@ -3,10 +3,9 @@
     <t t-name="tbom.TbomStatusEditWidget" owl="1">
         <div class="position-relative d-inline-block tbom-status-container" t-on-click_outside="closeDropdown">
             <button type="button"
-                    t-att-disabled="props.readonly"
                     t-on-click="toggleDropdown"
                     t-attf-class="btn tbom-status-badge badge rounded-pill px-3 py-2 border-0 dropdown-toggle d-flex align-items-center gap-1 #{badgeClass}"
-                    t-att-title="props.readonly ? '' : 'Click to change status'">
+                    title="Click to change status">
                 <span class="tbom-status-dot me-1"></span>
                 <span t-esc="currentStatusLabel"/>
             </button>

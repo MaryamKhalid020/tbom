@@ -47,9 +47,6 @@ export class TbomStatusEditWidget extends Component {
 
     toggleDropdown(ev) {
         ev.stopPropagation();
-        if (this.props.readonly) {
-            return;
-        }
         this.state.isOpen = !this.state.isOpen;
     }
 
