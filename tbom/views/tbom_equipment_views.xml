@@ -12,10 +12,7 @@
                 <field name="employee_id" string="Assigned Custodian"/>
                 <field name="deployment_date"/>
                 <field name="return_date"/>
-                <field name="status" widget="badge"
-                       decoration-info="status == 'planned'"
-                       decoration-warning="status == 'deployed'"
-                       decoration-success="status == 'returned'"/>
+                <field name="status" widget="tbom_status_edit"/>
             </list>
         </field>
     </record>

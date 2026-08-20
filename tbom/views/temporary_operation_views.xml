@@ -198,12 +198,7 @@
                                             <field name="resource_type"/>
                                             <field name="quantity"/>
                                             <field name="assigned_employee_id" optional="show"/>
-                                            <field name="status"
-                                                   widget="badge"
-                                                   decoration-info="status == 'planned'"
-                                                   decoration-warning="status == 'deployed'"
-                                                   decoration-success="status == 'returned'"
-                                                   decoration-danger="status == 'damaged'"/>
+                                            <field name="status" widget="tbom_status_edit"/>
                                         </list>
                                     </field>
                                 </page>
@@ -217,11 +212,7 @@
                                             <field name="employee_id" optional="show"/>
                                             <field name="deployment_date"/>
                                             <field name="return_date"/>
-                                            <field name="status"
-                                                   widget="badge"
-                                                   decoration-info="status == 'planned'"
-                                                   decoration-warning="status == 'deployed'"
-                                                   decoration-success="status == 'returned'"/>
+                                            <field name="status" widget="tbom_status_edit"/>
                                         </list>
                                     </field>
                                 </page>
