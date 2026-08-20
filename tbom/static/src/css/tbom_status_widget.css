@@ -15,7 +15,7 @@
 }
 
 .tbom-status-dropdown {
-    z-index: 1050;
+    z-index: 2000 !important;
     min-width: 150px;
     border-radius: 8px;
     padding: 6px 0;
@@ -34,4 +34,22 @@
     background-color: #e9ecef;
     color: #0d6efd;
     font-weight: 600 !important;
+}
+
+/* Force all Odoo cell, group, tab, sheet, and list cell containers to allow visible overflow when our widget is rendered inside them */
+.o_list_renderer td:has(.tbom-status-container),
+.o_form_view .o_cell:has(.tbom-status-container),
+.o_form_view .o_inner_group:has(.tbom-status-container),
+.o_form_view .o_group:has(.tbom-status-container),
+.o_form_view .tab-content:has(.tbom-status-container),
+.o_form_view .tab-pane:has(.tbom-status-container),
+.o_form_view .o_form_sheet:has(.tbom-status-container) {
+    overflow: visible !important;
+}
+
+/* Raise z-index of rows in editable tree views dynamically so the dropdown overlays on top of the subsequent table rows */
+.o_list_renderer tr:has(.tbom-status-container:focus-within),
+.o_list_renderer tr:has(.tbom-status-dropdown) {
+    z-index: 99 !important;
+    position: relative;
 }
