@@ -53,3 +53,9 @@
     z-index: 99 !important;
     position: relative;
 }
+
+/* Add "Total" heading above the grand total columns on intermediate grouping header rows in pivot view */
+.o_pivot_view table thead tr:not(:first-child):not(:last-child) th:last-child::after {
+    content: "Total";
+    font-weight: 700;
+}
